@@ -1,0 +1,9 @@
+LOAD DATA
+INFILE 'Marque.csv'
+TRUNCATE
+INTO TABLE Marque
+FIELDS TERMINATED BY ';'
+TRAILING NULLCOLS
+(
+    Nom, Annee, Nationalite
+)
