@@ -20,7 +20,7 @@ CREATE TABLE Modele_moto
 (
     Marque      VARCHAR(32) NOT NULL,
     Nom         VARCHAR(32) NOT NULL,
-    Annee       NUMBER(4)   NOT NULL,
+    Annee       DATE        NOT NULL,
     Cylindree   NUMBER(4),
     Couple      NUMBER(3),
     Puissance   NUMBER(3),
@@ -68,6 +68,19 @@ CREATE TABLE Course_vitesse
     PRIMARY KEY (Championnat, Date_course)
 );
 
+CREATE TABLE Participe (
+    Id_pilote       INT         NOT NULL,
+    Championnat     VARCHAR(32) NOT NULL,
+    Date_course     DATE        NOT NULL,
+    Modele_moto     VARCHAR(32) NOT NULL,
+    Annee_moto      DATE        NOT NULL,
+    Classement      NUMBER(2),
+    Points_gagnes   NUMBER(2),
+    Vitesse_moy     NUMBER(4),
+    Meilleur_tour   NUMBER(6),
+    PRIMARY KEY (Id_pilote, Championnat, Date_course, Modele_moto, Annee_moto)
+);
+
 ALTER TABLE Team
     ADD FOREIGN KEY (Marque) REFERENCES Marque (Nom);
 
@@ -78,3 +91,10 @@ ALTER TABLE Course_vitesse
     ADD FOREIGN KEY (Championnat, Annee) REFERENCES Championnat (Nom, Annee);
 ALTER TABLE Course_vitesse
     ADD FOREIGN KEY (Circuit) REFERENCES Circuit (Nom);
+
+ALTER TABLE Participe
+    ADD FOREIGN KEY (Id_pilote) REFERENCES Pilote (Id);
+ALTER TABLE Participe
+    ADD FOREIGN KEY (Championnat, Date_course) REFERENCES Course_vitesse (Championnat, Date_course);
+ALTER TABLE Participe
+    ADD FOREIGN KEY (Modele_moto, Annee_moto) REFERENCES Modele_moto (Nom, Annee);

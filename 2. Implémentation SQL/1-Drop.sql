@@ -1,3 +1,4 @@
+DROP TABLE Participe;
 DROP TABLE Course_vitesse;
 DROP TABLE Circuit;
 DROP TABLE Championnat;

@@ -15,17 +15,6 @@ CREATE TABLE Fait_partie (
     PRIMARY KEY (id_pilote, nom_team, annee_debut)
 );
 
-CREATE TABLE Participe (
-    id_pilote       INT         NOT NULL,
-    championnat     VARCHAR(40) NOT NULL,
-    date_course     VARCHAR(10) NOT NULL,
-    classement      INT(2),
-    points_gagnes   INT(2),
-    vitesse_moy     INT(6),
-    meilleur_tour   INT(6),
-    PRIMARY KEY (id_pilote, championnat, date_course)
-);
-
 ALTER TABLE Utilise
     ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
     ADD FOREIGN KEY (modele, modele_annee) REFERENCES Modele_moto (nom_modele, annee);
@@ -33,10 +22,6 @@ ALTER TABLE Utilise
 ALTER TABLE Fait_partie
     ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
     ADD FOREIGN KEY (nom_team) REFERENCES Team (nom);
-
-ALTER TABLE Participe
-    ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
-    ADD FOREIGN KEY (championnat, date_course) REFERENCES Course_vitesse (championnat, date_course);
 
 INSERT INTO Fait_partie VALUES
     (0, 'Monster Yamaha Tech3', 2012, 2012),
@@ -81,60 +66,6 @@ INSERT INTO Utilise VALUES
     (12, 'GSX-R1000', 2014, 2014, NULL),
     (13, 'GSX-R1000', 2014, 2014, 2015),
     (14, 'ZX-10R', 2015, 2015, NULL);
-
-INSERT INTO Participe VALUES
-    (1, 'MotoGP', '20/03/2016', 1, 25, 167.1, 114.543),
-    (0, 'MotoGP', '20/03/2016', 2, 20, 167.0, NULL),
-    (7, 'MotoGP', '20/03/2016', 3, 16, 167.0, NULL),
-    (4, 'MotoGP', '20/03/2016', 4, 13, 167.0, NULL),
-    (8, 'MotoGP', '20/03/2016', 5, 11, 166.2, NULL),
-    (5, 'MotoGP', '20/03/2016', 6, 10, 166.1, NULL),
-    (11, 'MotoGP', '20/03/2016', 14, 2, 164.4, NULL),
-    (6, 'MotoGP', '20/03/2016', 0, 0, 165.0, NULL),
-    (4, 'MotoGP', '24/04/2016', 1, 25, 157.5, 100.090),
-    (1, 'MotoGP', '24/04/2016', 2, 20, 157.4, NULL),
-    (7, 'MotoGP', '24/04/2016', 3, 16, 157.1, NULL),
-    (8, 'MotoGP', '24/04/2016', 4, 13, 156.9, NULL),
-    (5, 'MotoGP', '24/04/2016', 6, 10, 156.5, NULL),
-    (9, 'MotoGP', '24/04/2016', 7, 9, 156.0, NULL),
-    (6, 'MotoGP', '24/04/2016', 11, 5, 155.3, NULL),
-    (11, 'MotoGP', '24/04/2016', 17, 0, 154.7, NULL),
-    (0, 'MotoGP', '24/04/2016', 0, 0, 157.7, NULL),
-    (4, 'MotoGP', '05/06/2016', 1, 25, 156.4, NULL),
-    (7, 'MotoGP', '05/06/2016', 2, 20, 156.3, 105.971),
-    (8, 'MotoGP', '05/06/2016', 3, 16, 156.0, NULL),
-    (5, 'MotoGP', '05/06/2016', 4, 13, 155.0, NULL),
-    (6, 'MotoGP', '05/06/2016', 6, 10, 154.3, NULL),
-    (0, 'MotoGP', '05/06/2016', 7, 9, 154.0, NULL),
-    (11, 'MotoGP', '05/06/2016', 10, 6, 153.6, NULL),
-    (1, 'MotoGP', '05/06/2016', 0, 0, 155.9, NULL),
-    (9, 'MotoGP', '05/06/2016', 0, 0, 155.8, NULL),
-    (11, 'MotoGP', '26/06/2016', 1, 25, 146.7, NULL),
-    (7, 'MotoGP', '26/06/2016', 2, 20, 146.4, NULL),
-    (9, 'MotoGP', '26/06/2016', 5, 11, 144.7, NULL),
-    (5, 'MotoGP', '26/06/2016', 9, 7, 143.8, NULL),
-    (1, 'MotoGP', '26/06/2016', 10, 6, 143.7, NULL),
-    (4, 'MotoGP', '26/06/2016', 0, 0, 145.1, NULL),
-    (0, 'MotoGP', '26/06/2016', 0, 0, 140.8, NULL),
-    (6, 'MotoGP', '26/06/2016', 0, 0, 0, NULL),
-    (5, 'MotoGP', '04/09/2016', 1, 25, 172.1, 122.339),
-    (6, 'MotoGP', '04/09/2016', 2, 20, 171.9, NULL),
-    (4, 'MotoGP', '04/09/2016', 3, 16, 171.9, NULL),
-    (7, 'MotoGP', '04/09/2016', 4, 13, 171.7, NULL),
-    (8, 'MotoGP', '04/09/2016', 5, 11, 171.7, NULL),
-    (0, 'MotoGP', '04/09/2016', 6, 10, 171.3, NULL),
-    (1, 'MotoGP', '04/09/2016', 8, 8, 170.7, NULL),
-    (11, 'MotoGP', '04/09/2016', 16, 0, 168.7, NULL),
-    (7, 'MotoGP', '25/09/2016', 1, 25, 167.0, 108.694),
-    (1, 'MotoGP', '25/09/2016', 2, 20, 166.8, NULL),
-    (4, 'MotoGP', '25/09/2016', 3, 16, 166.6, NULL),
-    (5, 'MotoGP', '25/09/2016', 4, 13, 166.4, NULL),
-    (6, 'MotoGP', '25/09/2016', 5, 11, 166.1, NULL),
-    (8, 'MotoGP', '25/09/2016', 6, 10, 165.8, NULL),
-    (0, 'MotoGP', '25/09/2016', 11, 5, 164.8, NULL),
-    (12, 'Superbike', '22/02/2015', 17, 0, NULL, 92.402),
-    (13, 'Superbike', '22/02/2015', 9, 7, NULL, 92.690),
-    (14, 'Superbike', '22/02/2015', 6, 10, NULL, 92.016);
 
 CREATE VIEW MotoGP_2016_Score_pilotes AS
     SELECT Pi.id, Pi.prenom, Pi.nom, Pi.numero, SUM(Pa.points_gagnes) AS nombre_total_de_point

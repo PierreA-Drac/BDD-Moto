@@ -12,5 +12,3 @@ TRAILING NULLCOLS
     Nb_tours,
     Duree
 )
-
-
