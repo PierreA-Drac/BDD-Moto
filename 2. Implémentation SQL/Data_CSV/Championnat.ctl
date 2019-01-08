@@ -5,5 +5,5 @@ INTO TABLE Championnat
 FIELDS TERMINATED BY ';'
 TRAILING NULLCOLS
 (
-    Nom, Annee
+    Nom, Annee DATE "YYYY"
 )

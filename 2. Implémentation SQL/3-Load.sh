@@ -4,3 +4,4 @@ sqlldr userid=projet/projet control=Data_CSV/Modele_moto.ctl log=Data_TMP/Modele
 sqlldr userid=projet/projet control=Data_CSV/Pilote.ctl log=Data_TMP/Pilote.log bad=Data_TMP/Pilote.bad discard=Data_TMP/Pilote.discard skip=1
 sqlldr userid=projet/projet control=Data_CSV/Championnat.ctl log=Data_TMP/Championnat.log bad=Data_TMP/Championnat.bad discard=Data_TMP/Championnat.discard skip=1
 sqlldr userid=projet/projet control=Data_CSV/Circuit.ctl log=Data_TMP/Circuit.log bad=Data_TMP/Circuit.bad discard=Data_TMP/Circuit.discard skip=1
+sqlldr userid=projet/projet control=Data_CSV/Course_vitesse.ctl log=Data_TMP/Course_vitesse.log bad=Data_TMP/Course_vitesse.bad discard=Data_TMP/Course_vitesse.discard skip=1

@@ -1,11 +1,3 @@
-CREATE TABLE Course_vitesse (
-    championnat VARCHAR(40) NOT NULL,
-    date_course VARCHAR(10) NOT NULL,
-    circuit     VARCHAR(40) NOT NULL,
-    pays        VARCHAR(40) NOT NULL,
-    PRIMARY KEY (championnat, date_course)
-);
-
 CREATE TABLE Utilise (
     id_pilote       INT         NOT NULL,
     modele          VARCHAR(40) NOT NULL,
@@ -89,15 +81,6 @@ INSERT INTO Utilise VALUES
     (12, 'GSX-R1000', 2014, 2014, NULL),
     (13, 'GSX-R1000', 2014, 2014, 2015),
     (14, 'ZX-10R', 2015, 2015, NULL);
-
-INSERT INTO Course_vitesse VALUES
-    ('MotoGP', '20/03/2016', 'Losail International Circuit', 'Quatar'),
-    ('MotoGP', '24/04/2016', 'Circuit de Jerez', 'Espagne'),
-    ('MotoGP', '05/06/2016', 'Circuit de Catalunya', 'Catalogne'),
-    ('MotoGP', '26/06/2016', 'TT Circuit Assen', 'Pays-Bas'),
-    ('MotoGP', '04/09/2016', 'Silverstone Circuit', 'Angleterre'),
-    ('MotoGP', '25/09/2016', 'Motorland Aragón', 'Espagne'),
-    ('Superbike', '22/02/2015', 'Phillip Island', 'Australie');
 
 INSERT INTO Participe VALUES
     (1, 'MotoGP', '20/03/2016', 1, 25, 167.1, 114.543),
