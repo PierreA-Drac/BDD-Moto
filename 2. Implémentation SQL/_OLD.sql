@@ -1,25 +1,3 @@
-CREATE DATABASE Moto;
-
-CREATE USER 'Moto_Admin'@'127.0.0.1' IDENTIFIED BY 'moto_admin';
-GRANT ALL ON Moto.* TO 'Moto_Admin'@'127.0.0.1' WITH GRANT OPTION;
-FLUSH PRIVILEGES;
-SHOW GRANTS FOR 'Moto_Admin'@'127.0.0.1';
-
-CREATE USER 'Moto_User'@'127.0.0.1' IDENTIFIED BY 'moto_user';
-GRANT SELECT                 ON Moto.*       TO 'Moto_User'@'127.0.0.1';
-GRANT INSERT, UPDATE, DELETE ON Moto.Possede TO 'Moto_User'@'127.0.0.1';
-FLUSH PRIVILEGES;
-SHOW GRANTS FOR 'Moto_User'@'127.0.0.1';
-
-CREATE TABLE Utilisateurs (
-    identifiant         VARCHAR(40) NOT NULL,
-    mot_de_passe        VARCHAR(40) NOT NULL,
-    date_inscription    VARCHAR(10) NOT NULL,
-    age                 INT(3),
-    sexe                VARCHAR(8),
-    PRIMARY KEY (identifiant)
-);
-
 CREATE TABLE Modele_moto (
     marque      VARCHAR(40) NOT NULL,
     nom_modele  VARCHAR(40) NOT NULL,
@@ -31,19 +9,6 @@ CREATE TABLE Modele_moto (
     prix        INT,
     type_moto   VARCHAR(40),
     PRIMARY KEY (nom_modele, annee)
-);
-
-CREATE TABLE Marque (
-    nom             VARCHAR(40) NOT NULL,
-    pays            VARCHAR(40),
-    annee_creation  VARCHAR(4),
-    PRIMARY KEY (nom)
-);
-
-CREATE TABLE Team (
-    nom     VARCHAR(40) NOT NULL,
-    marque  VARCHAR(40) NOT NULL,
-    PRIMARY KEY (nom)
 );
 
 CREATE TABLE Pilote (
@@ -63,13 +28,6 @@ CREATE TABLE Course_vitesse (
     circuit     VARCHAR(40) NOT NULL,
     pays        VARCHAR(40) NOT NULL,
     PRIMARY KEY (championnat, date_course)
-);
-
-CREATE TABLE Possede (
-    identifiant VARCHAR(40) NOT NULL,
-    modele      VARCHAR(40) NOT NULL,
-    annee       INT(4)      NOT NULL,
-    PRIMARY KEY (identifiant, modele, annee)
 );
 
 CREATE TABLE Utilise (
@@ -103,13 +61,6 @@ CREATE TABLE Participe (
 ALTER TABLE Modele_moto
     ADD FOREIGN KEY (marque) REFERENCES Marque (nom);
 
-ALTER TABLE Team
-    ADD FOREIGN KEY (marque) REFERENCES Marque (nom);
-
-ALTER TABLE Possede
-    ADD FOREIGN KEY (identifiant) REFERENCES Utilisateurs (identifiant),
-    ADD FOREIGN KEY (modele, annee) REFERENCES Modele_moto (nom_modele, annee);
-
 ALTER TABLE Utilise
     ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
     ADD FOREIGN KEY (modele, modele_annee) REFERENCES Modele_moto (nom_modele, annee);
@@ -121,18 +72,6 @@ ALTER TABLE Fait_partie
 ALTER TABLE Participe
     ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
     ADD FOREIGN KEY (championnat, date_course) REFERENCES Course_vitesse (championnat, date_course);
-
-INSERT INTO Marque VALUES
-    ('Yamaha', 'Japon', 1887),
-    ('Ducati', 'Italie', 1926),
-    ('Kawasaki', 'Japon', 1896),
-    ('BMW', 'Allemagne', 1916),
-    ('Norton', 'Angleterre', 1898),
-    ('Honda', 'Japon', 1948),
-    ('Triumph', 'Angleterre', 1885),
-    ('MV Agusta', 'Italie', 1948),
-    ('Suzuki', 'Japon', 1909),
-    ('Mash', NULL, NULL);
 
 INSERT INTO Modele_moto VALUES
     ('Yamaha', 'R1', 2017, 998, 11.5, 200, 199, 18999, 'Sportive'),
@@ -148,28 +87,6 @@ INSERT INTO Modele_moto VALUES
     ('Honda', 'RC213V-RS', 2015, 1000, NULL, 260, 160, NULL, 'Sportive'),
     ('Suzuki', 'GSX-R1000', 2014, 1000, 12, 240, 157, 18500, 'Sportive'),
     ('Suzuki', 'GSX-RR', 2014, 1000, NULL, 193, 203, NULL, 'Sportive');
-
-INSERT INTO Utilisateurs VALUES
-    ('Pierre', 'pierre37', '27/11/2017', 20, 'Homme'),
-    ('Claire', 'claire37', '28/11/2017', 21, 'Femme'),
-    ('Damien', 'damien37', '21/11/2017', 26, 'Homme'),
-    ('Florine', 'florine37', '23/11/2017', 20, 'Femme'),
-    ('Pascal', 'pascal37', '14/11/2016', 56, 'Homme');
-
-INSERT INTO Possede VALUES
-    ('Pierre', '1299 Panigale', '2017'),
-    ('Pierre', '961 Commando Cafe Racer MK II', '2017'),
-    ('Damien', '1200 Nine-T Racer', '2017');
-
-INSERT INTO Team VALUES
-    ('Ducati Team', 'Ducati'),
-    ('Monster Yamaha Tech3', 'Yamaha'),
-    ('Movistar Yamaha MotoGP', 'Yamaha'),
-    ('LCR Honda', 'Honda'),
-    ('Repsol Honda Team', 'Honda'),
-    ('Team Suzuki Ecstar MotoGP', 'Suzuki'),
-    ('Voltcom Crescent Suzuki', 'Suzuki'),
-    ('Kawasaki Racing Team', 'Kawasaki');
 
 INSERT INTO Pilote VALUES
     (0, 'Dovizioso', 'Andrea', 31, 'Italie', 'Homme', 4),
