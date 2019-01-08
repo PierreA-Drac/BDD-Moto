@@ -1,0 +1,9 @@
+LOAD DATA
+INFILE './Data_CSV/Championnat.csv'
+TRUNCATE
+INTO TABLE Championnat
+FIELDS TERMINATED BY ';'
+TRAILING NULLCOLS
+(
+    Nom, Annee
+)

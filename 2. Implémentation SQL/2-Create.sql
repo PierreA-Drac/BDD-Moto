@@ -41,6 +41,21 @@ CREATE TABLE Pilote
     PRIMARY KEY (id)
 );
 
+CREATE TABLE Championnat
+(
+    Nom         VARCHAR(32) NOT NULL,
+    Annee       NUMBER(4) NOT NULL,
+    PRIMARY KEY (Nom, Annee)
+);
+
+CREATE TABLE Circuit
+(
+    Nom      VARCHAR(32) NOT NULL,
+    Pays     CHAR(2)     NOT NULL,
+    Longueur NUMBER(3),
+    PRIMARY KEY (Nom)
+);
+
 ALTER TABLE Team
     ADD FOREIGN KEY (Marque) REFERENCES Marque (Nom);
 
