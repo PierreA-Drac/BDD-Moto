@@ -1,16 +1,3 @@
-CREATE TABLE Modele_moto (
-    marque      VARCHAR(40) NOT NULL,
-    nom_modele  VARCHAR(40) NOT NULL,
-    annee       INT(4)      NOT NULL,
-    cylindree   INT(4),
-    couple      INT,
-    puissance   INT(3),
-    poids       INT(3),
-    prix        INT,
-    type_moto   VARCHAR(40),
-    PRIMARY KEY (nom_modele, annee)
-);
-
 CREATE TABLE Pilote (
     id      INT         NOT NULL,
     nom     VARCHAR(40) NOT NULL,
@@ -58,9 +45,6 @@ CREATE TABLE Participe (
     PRIMARY KEY (id_pilote, championnat, date_course)
 );
 
-ALTER TABLE Modele_moto
-    ADD FOREIGN KEY (marque) REFERENCES Marque (nom);
-
 ALTER TABLE Utilise
     ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
     ADD FOREIGN KEY (modele, modele_annee) REFERENCES Modele_moto (nom_modele, annee);
@@ -72,21 +56,6 @@ ALTER TABLE Fait_partie
 ALTER TABLE Participe
     ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
     ADD FOREIGN KEY (championnat, date_course) REFERENCES Course_vitesse (championnat, date_course);
-
-INSERT INTO Modele_moto VALUES
-    ('Yamaha', 'R1', 2017, 998, 11.5, 200, 199, 18999, 'Sportive'),
-    ('Ducati', '1299 Panigale', 2017, 1285, 14.74, 205, 190, 21390, 'Sportive'),
-    ('Kawasaki', 'ZX-10R', 2015, 998, 11.6, 200, 206, 17599, 'Sportive'),
-    ('Kawasaki', 'ZX-10R', 2016, 998, 11.6, 200, 206, 17599, 'Sportive'),
-    ('Mash', '400 TT40 Cafe Racer', 2017, 397, 3.06, 28, 170, 4990, 'Cafe Racer'),
-    ('Norton', '961 Commando Cafe Racer MK II', 2017, 961, 9.2, 80, 205, 23900, 'Cafe Racer'),
-    ('BMW', '1200 Nine-T Racer', 2017, 1170, 11.8, 110, 220, 13850, 'Cafe Racer'),
-    ('Ducati', 'Desmosedici GP', 2013, 1000, NULL, 250, 165, NULL, 'Sportive'),
-    ('Yamaha', 'M1', 2016, 1000, NULL, 240, 157, NULL, 'Sportive'),
-    ('Honda', 'RC213V', 2012, 1000, NULL, 260, 160, NULL, 'Sportive'),
-    ('Honda', 'RC213V-RS', 2015, 1000, NULL, 260, 160, NULL, 'Sportive'),
-    ('Suzuki', 'GSX-R1000', 2014, 1000, 12, 240, 157, 18500, 'Sportive'),
-    ('Suzuki', 'GSX-RR', 2014, 1000, NULL, 193, 203, NULL, 'Sportive');
 
 INSERT INTO Pilote VALUES
     (0, 'Dovizioso', 'Andrea', 31, 'Italie', 'Homme', 4),
