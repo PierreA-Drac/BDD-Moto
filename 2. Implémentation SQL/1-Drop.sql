@@ -1,3 +1,4 @@
-DROP TABLE Team;
+DROP TABLE Pilote;
 DROP TABLE Modele_moto;
+DROP TABLE Team;
 DROP TABLE Marque;

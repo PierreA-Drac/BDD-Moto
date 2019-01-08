@@ -29,6 +29,18 @@ CREATE TABLE Modele_moto
     PRIMARY KEY (nom, annee)
 );
 
+CREATE TABLE Pilote
+(
+    Id          NUMBER(4)  NOT NULL,
+    Nom         VARCHAR(32) NOT NULL,
+    Prenom      VARCHAR(32) NOT NULL,
+    Age         NUMBER(3),
+    Nationalite CHAR(2),
+    Sexe        CHAR(1),
+    Numero      NUMBER(2),
+    PRIMARY KEY (id)
+);
+
 ALTER TABLE Team
     ADD FOREIGN KEY (Marque) REFERENCES Marque (Nom);
 

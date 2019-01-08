@@ -1,14 +1,3 @@
-CREATE TABLE Pilote (
-    id      INT         NOT NULL,
-    nom     VARCHAR(40) NOT NULL,
-    prenom  VARCHAR(40) NOT NULL,
-    age     INT(3),
-    pays    VARCHAR(40),
-    sexe    VARCHAR(8),
-    numero  INT(2),
-    PRIMARY KEY (id)
-);
-
 CREATE TABLE Course_vitesse (
     championnat VARCHAR(40) NOT NULL,
     date_course VARCHAR(10) NOT NULL,
@@ -56,23 +45,6 @@ ALTER TABLE Fait_partie
 ALTER TABLE Participe
     ADD FOREIGN KEY (id_pilote) REFERENCES Pilote (id),
     ADD FOREIGN KEY (championnat, date_course) REFERENCES Course_vitesse (championnat, date_course);
-
-INSERT INTO Pilote VALUES
-    (0, 'Dovizioso', 'Andrea', 31, 'Italie', 'Homme', 4),
-    (1, 'Lorenzo', 'Jorgue', 30, 'Espagne', 'Homme', 99),
-    (2, 'Zarco', 'Johann', 27, 'France', 'Homme', 5),
-    (3, 'Folger', 'Jonas', 24, 'Allemagne', 'Homme', 94),
-    (4, 'Rossi', 'Valentino', 38, 'Italie', 'Homme', 46),
-    (5, 'Vinales', 'Maverick', 22, 'Espagne', 'Homme', 25),
-    (6, 'Crutchlow', 'Cal', 32, 'Angleterre', 'Homme', 35),
-    (7, 'Marquez', 'Marc', 24, 'Espagne', 'Homme', 93),
-    (8, 'Pedrosa', 'Daniel', 32, 'Espagne', 'Homme', 26),
-    (9, 'Ianonne', 'Andrea', 28, 'Italie', 'Homme', 29),
-    (10, 'Rins', 'Alex', 21, 'Espagne', 'Homme', 42),
-    (11, 'Miller', 'Jack', 22, 'Australie', 'Homme', 43),
-    (12, 'de Puniet', 'Randy', 36, 'France', 'Homme', 14),
-    (13, 'Lowes', 'Alex', 27, 'Angleterre', 'Homme', 22),
-    (14, 'Sykes', 'Tom', 32, 'Angleterre', 'Homme', 66);
 
 INSERT INTO Fait_partie VALUES
     (0, 'Monster Yamaha Tech3', 2012, 2012),
