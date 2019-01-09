@@ -1,4 +1,5 @@
 set serverout on
+define _editor=vim
 ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 
 CREATE TABLE Marque
@@ -115,4 +116,5 @@ ALTER TABLE Contrat
     ADD FOREIGN KEY (Moto_modele, Moto_annee) REFERENCES Modele_moto (Nom, Annee);
 ALTER TABLE Contrat
     ADD FOREIGN KEY (Team_nom) REFERENCES Team (Nom);
+
 

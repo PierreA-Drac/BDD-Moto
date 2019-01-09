@@ -1,10 +1,11 @@
+-- Liste des scores des pilotes au MotoGP de 2016.
 CREATE VIEW MotoGP_2016_Score_pilotes AS
-    SELECT Pi.id, Pi.prenom, Pi.nom, Pi.numero, SUM(Pa.points_gagnes) AS nombre_total_de_point
-    FROM Pilote Pi, Participe Pa
-    WHERE Pa.id_pilote = Pi.id
-        AND Pa.championnat LIKE "MotoGP"
-        AND Pa.date_course LIKE "%2016"
-    GROUP BY Pi.id
+    SELECT Pi.Numero, Pi.Nom, Pi.Prenom, SUM(Pa.Points_gagnes) AS Nombre_total_de_point
+    FROM Participe Pa, Pilote Pi
+    WHERE Pa.Id_pilote = Pi.Id
+        AND Pa.Championnat LIKE 'MotoGP'
+        AND TO_CHAR(Pa.Date_course, 'YYYY') LIKE '2016'
+    GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
     ORDER BY Nombre_total_de_point DESC;
 
 CREATE VIEW MotoGP_2016_Score_teams AS
