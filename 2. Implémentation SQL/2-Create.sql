@@ -130,10 +130,33 @@ ALTER TABLE Contrat
 
 -- Liste des scores des pilotes au MotoGP de 2016.
 CREATE VIEW MotoGP_2016_Score_pilotes AS
-    SELECT Pi.Numero, Pi.Nom, Pi.Prenom, SUM(Pa.Points_gagnes) AS Nombre_total_de_point
+    SELECT Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom, SUM(Pa.Points_gagnes) AS Nombre_total_de_point
     FROM Participe Pa, Pilote Pi
     WHERE Pa.Id_pilote = Pi.Id
         AND Pa.Championnat LIKE 'MotoGP'
         AND TO_CHAR(Pa.Date_course, 'YYYY') LIKE '2016'
-    GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
+    GROUP BY Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom
     ORDER BY Nombre_total_de_point DESC;
+    
+-- Liste des scores des teams au MotoGP de 2016.
+CREATE VIEW MotoGP_2016_Score_teams AS
+    SELECT C.Team_nom, SUM(Nombre_total_de_point) AS Nombre_total_de_point
+    FROM Contrat C, MotoGP_2016_Score_pilotes S
+    WHERE S.Id = C.Id_pilote
+        AND TO_CHAR(C.Annee_debut, 'YYYY') <= 2016
+        AND (
+            C.Annee_fin IS NULL
+            OR
+            TO_CHAR(C.Annee_fin, 'YYYY') >= 2016
+        )
+    GROUP BY C.Team_nom
+    ORDER BY Nombre_total_de_point DESC;
+
+-- List des scores des constructeurs au MotoGP de 2016.
+CREATE VIEW MotoGP_2016_Score_construc AS
+    SELECT T.Marque, SUM(Nombre_total_de_point) AS Nombre_total_de_point
+    FROM Team T, MotoGP_2016_Score_teams S
+    WHERE T.Nom = S.Team_nom
+    GROUP BY T.Marque
+    ORDER BY Nombre_total_de_point DESC;
+

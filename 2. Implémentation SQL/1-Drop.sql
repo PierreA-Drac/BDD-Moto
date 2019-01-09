@@ -1,3 +1,6 @@
+DROP VIEW MotoGP_2016_Score_construc;
+DROP VIEW MotoGP_2016_Score_teams;
+DROP VIEW MotoGP_2016_Score_pilotes;
 DROP TABLE Contrat;
 DROP TABLE Participe;
 DROP TABLE Course_vitesse;
