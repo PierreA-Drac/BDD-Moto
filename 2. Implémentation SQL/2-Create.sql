@@ -1,6 +1,13 @@
+-- Configuration basique.
+
+-- Autorise l'écriture sur la sortie standard.
 set serverout on
+-- Configure l'éditeur de texte par défaut.
 define _editor=vim
+-- Configure le format de date par défaut.
 ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+
+-- Création des tables.
 
 CREATE TABLE Marque
 (
@@ -92,6 +99,8 @@ CREATE TABLE Contrat (
     PRIMARY KEY (Id_pilote, Moto_modele, Moto_annee, Team_nom, Annee_debut)
 );
 
+-- Configure les clés étrangères.
+
 ALTER TABLE Team
     ADD FOREIGN KEY (Marque) REFERENCES Marque (Nom);
 
@@ -117,4 +126,14 @@ ALTER TABLE Contrat
 ALTER TABLE Contrat
     ADD FOREIGN KEY (Team_nom) REFERENCES Team (Nom);
 
+-- Creéation des vues.
 
+-- Liste des scores des pilotes au MotoGP de 2016.
+CREATE VIEW MotoGP_2016_Score_pilotes AS
+    SELECT Pi.Numero, Pi.Nom, Pi.Prenom, SUM(Pa.Points_gagnes) AS Nombre_total_de_point
+    FROM Participe Pa, Pilote Pi
+    WHERE Pa.Id_pilote = Pi.Id
+        AND Pa.Championnat LIKE 'MotoGP'
+        AND TO_CHAR(Pa.Date_course, 'YYYY') LIKE '2016'
+    GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
+    ORDER BY Nombre_total_de_point DESC;
