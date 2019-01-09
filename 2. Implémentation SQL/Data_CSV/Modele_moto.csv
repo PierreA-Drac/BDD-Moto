@@ -1,14 +1,20 @@
 Marque;Nom;Annee;Cylindree;Couple;Puissance;Poids;Prix;Genre
 Yamaha;R1;2017;998;11.5;200;199;18999;Sportive
 Ducati;1299 Panigale;2017;1285;14.74;205;190;21390;Sportive
+Kawasaki;ZX-10R;2010;998;10.9;196;212;16999;Sportive
 Kawasaki;ZX-10R;2015;998;11.6;200;206;17599;Sportive
-Kawasaki;ZX-10R;2016;998;11.6;200;206;17599;Sportive
+Kawasaki;ZX-10R;2016;998;11.8;205;203;17599;Sportive
 Mash;400 TT40 Cafe Racer;2017;397;3.06;28;170;4990;Cafe Racer
 Norton;961 Commando Cafe Racer MK II;2017;961;9.2;80;205;23900;Cafe Racer
 BMW;1200 Nine-T Racer;2017;1170;11.8;110;220;13850;Cafe Racer
+Ducati;Desmosedici GP;2011;1000;;244;169;;Sportive
 Ducati;Desmosedici GP;2013;1000;;250;165;;Sportive
+Yamaha;M1;2009;1000;;222;167;;Sportive
+Yamaha;M1;2012;1000;;228;164;;Sportive
 Yamaha;M1;2016;1000;;240;157;;Sportive
+Honda;RC213V;2006;1000;;238;175;;Sportive
 Honda;RC213V;2012;1000;;260;160;;Sportive
 Honda;RC213V-RS;2015;1000;;260;160;;Sportive
+Suzuki;GSX-R1000;2011;1000;12;229;163;17800;Sportive
 Suzuki;GSX-R1000;2014;1000;12;240;157;18500;Sportive
 Suzuki;GSX-RR;2014;1000;;193;203;;Sportive

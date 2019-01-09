@@ -1,3 +1,4 @@
+DROP TABLE Contrat;
 DROP TABLE Participe;
 DROP TABLE Course_vitesse;
 DROP TABLE Circuit;

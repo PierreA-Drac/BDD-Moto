@@ -6,3 +6,4 @@ sqlldr userid=projet/projet control=Data_CSV/Championnat.ctl log=Data_TMP/Champi
 sqlldr userid=projet/projet control=Data_CSV/Circuit.ctl log=Data_TMP/Circuit.log bad=Data_TMP/Circuit.bad discard=Data_TMP/Circuit.discard skip=1
 sqlldr userid=projet/projet control=Data_CSV/Course_vitesse.ctl log=Data_TMP/Course_vitesse.log bad=Data_TMP/Course_vitesse.bad discard=Data_TMP/Course_vitesse.discard skip=1
 sqlldr userid=projet/projet control=Data_CSV/Participe.ctl log=Data_TMP/Participe.log bad=Data_TMP/Participe.bad discard=Data_TMP/Participe.discard skip=1
+sqlldr userid=projet/projet control=Data_CSV/Contrat.ctl log=Data_TMP/Contrat.log bad=Data_TMP/Contrat.bad discard=Data_TMP/Contrat.discard skip=1
