@@ -12,7 +12,7 @@ ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 CREATE TABLE Marque
 (
     Nom         VARCHAR(32) NOT NULL,
-    Annee       NUMBER(4),
+    Annee       DATE,
     Nationalite CHAR(2) CHECK (Nationalite IN (NULL, 'FR', 'GB', 'US', 'IT', 'ES', 'JP', 'CH', 'DE')),
     PRIMARY KEY (Nom)
 );
@@ -181,3 +181,17 @@ CREATE VIEW MotoGP_Pilote_win AS
         AND Pa.Classement = 1
     GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
     ORDER BY Nombre_de_victoire DESC;
+
+-- Création des triggers.
+
+-- Vérifie que la date de création d'une marque est inférieure à la date du jour.
+CREATE OR REPLACE TRIGGER marque_check_date BEFORE INSERT ON Marque FOR EACH ROW
+DECLARE
+    not_valid EXCEPTION;
+BEGIN
+    IF :new.Annee > SYSDATE THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the date is greater than today !');
+    END IF;
+END;
+/
+

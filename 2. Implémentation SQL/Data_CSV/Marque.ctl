@@ -5,5 +5,7 @@ INTO TABLE Marque
 FIELDS TERMINATED BY ';'
 TRAILING NULLCOLS
 (
-    Nom, Annee, Nationalite
+    Nom,
+    Annee DATE "YYYY",
+    Nationalite
 )
