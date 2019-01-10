@@ -163,18 +163,21 @@ CREATE VIEW MotoGP_2016_Score_construc AS
 -- Statistiques sur les pilotes du MotoGP.
 CREATE VIEW MotoGP_Pilote_stat AS
     SELECT Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe,
-    	SUM(Pa.Points_gagnes), MIN(Pa.Classement),
-        MAX(Pa.Vitesse_moy),   MIN(Pa.Meilleur_tour)
+        SUM(Pa.Points_gagnes) AS Total_de_points_gagnes,
+        MIN(Pa.Classement)    AS Meilleur_classement,
+        MAX(Pa.Vitesse_moy)   AS Vitesse_moyenne,
+        MIN(Pa.Meilleur_tour) AS Meilleur_tour
     FROM Pilote Pi, Participe Pa
     WHERE Pa.Id_pilote = Pi.Id
         AND Pa.Championnat LIKE 'MotoGP'
     GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe;
 -- TODO Fusionner la table ci-dessus et ci-dessous ?
 -- Nombre de victoire des pilotes au MotoGP.
-CREATE VIEW MotoGP_Pilote_stat AS
-    SELECT Pi.Numero, Pi.Nom, Pi.Prenom, COUNT(*)
+CREATE VIEW MotoGP_Pilote_win AS
+    SELECT Pi.Numero, Pi.Nom, Pi.Prenom, COUNT(*) AS Nombre_de_victoire
     FROM Pilote Pi, Participe Pa
     WHERE Pa.Id_pilote = Pi.Id
         AND Pa.Championnat LIKE 'MotoGP'
         AND Pa.Classement = 1
-    GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom;
+    GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
+    ORDER BY Nombre_de_victoire DESC;

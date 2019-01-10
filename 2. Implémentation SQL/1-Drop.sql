@@ -1,3 +1,4 @@
+DROP VIEW MotoGP_Pilote_win;
 DROP VIEW MotoGP_Pilote_stat;
 DROP VIEW MotoGP_2016_Score_construc;
 DROP VIEW MotoGP_2016_Score_teams;
