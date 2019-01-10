@@ -7,4 +7,3 @@ TRAILING NULLCOLS
 (
     Nom, Pays, Longueur
 )
-

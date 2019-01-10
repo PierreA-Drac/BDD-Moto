@@ -29,10 +29,10 @@ CREATE TABLE Modele_moto
     Marque      VARCHAR(32) NOT NULL,
     Nom         VARCHAR(32) NOT NULL,
     Annee       DATE        NOT NULL,
-    Cylindree   NUMBER(4),
-    Couple      NUMBER(3),
-    Puissance   NUMBER(3),
-    Poids       NUMBER(3),
+    Cylindree   FLOAT,
+    Couple      FLOAT,
+    Puissance   FLOAT,
+    Poids       FLOAT,
     Prix        NUMBER(6),
     Genre       VARCHAR(40),
     PRIMARY KEY (nom, annee)
@@ -61,7 +61,7 @@ CREATE TABLE Circuit
 (
     Nom      VARCHAR(32) NOT NULL,
     Pays     CHAR(2)     NOT NULL,
-    Longueur NUMBER(3),
+    Longueur FLOAT,
     PRIMARY KEY (Nom)
 );
 
@@ -72,7 +72,7 @@ CREATE TABLE Course_vitesse
     Date_course DATE        NOT NULL,
     Circuit     VARCHAR(32) NOT NULL,
     Nb_tours    NUMBER(2),
-    Duree       NUMBER(3),
+    Duree       FLOAT,
     PRIMARY KEY (Championnat, Date_course)
 );
 
@@ -84,8 +84,8 @@ CREATE TABLE Participe (
     Annee_moto      DATE        NOT NULL,
     Classement      NUMBER(2),
     Points_gagnes   NUMBER(2),
-    Vitesse_moy     NUMBER(4),
-    Meilleur_tour   NUMBER(6),
+    Vitesse_moy     FLOAT,
+    Meilleur_tour   FLOAT,
     PRIMARY KEY (Id_pilote, Championnat, Date_course, Modele_moto, Annee_moto)
 );
 
