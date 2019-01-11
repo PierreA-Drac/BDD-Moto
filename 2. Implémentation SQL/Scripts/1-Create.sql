@@ -1,5 +1,6 @@
 -- Supprime les précédentes créations si elles existent.
 
+DROP SEQUENCE PiloteID;
 DROP PROCEDURE date_inferior_to_current_time;
 DROP PROCEDURE check_nationalite;
 DROP VIEW MotoGP_Pilote_win;
