@@ -9,6 +9,6 @@ TRAILING NULLCOLS
     Moto_modele,
     Moto_annee  DATE "YYYY",
     Team_nom,
-    Annee_debut DATE "YYYY",
-    Annee_fin   DATE "YYYY"
+    Annee_debut DATE "YYYY-MM-DD",
+    Annee_fin   DATE "YYYY-MM-DD"
 )

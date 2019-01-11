@@ -95,7 +95,7 @@ CREATE TABLE Contrat (
     Moto_annee  DATE        NOT NULL,
     Team_nom    VARCHAR(32) NOT NULL,
     Annee_debut DATE        NOT NULL,
-    Annee_fin   DATE,
+    Annee_fin   DATE        NOT NULL,
     PRIMARY KEY (Id_pilote, Moto_modele, Moto_annee, Team_nom, Annee_debut)
 );
 
@@ -143,12 +143,7 @@ CREATE VIEW MotoGP_2016_Score_teams AS
     SELECT C.Team_nom, SUM(Nombre_total_de_point) AS Nombre_total_de_point
     FROM Contrat C, MotoGP_2016_Score_pilotes S
     WHERE S.Id = C.Id_pilote
-        AND TO_CHAR(C.Annee_debut, 'YYYY') <= 2016
-        AND (
-            C.Annee_fin IS NULL
-            OR
-            TO_CHAR(C.Annee_fin, 'YYYY') >= 2016
-        )
+        AND TO_DATE(2016, 'YYYY') BETWEEN C.Annee_debut AND C.Annee_fin
     GROUP BY C.Team_nom
     ORDER BY Nombre_total_de_point DESC;
 
@@ -252,9 +247,49 @@ BEGIN
 END;
 /
 
--- Vérifie la date d'un contrat.
+-- Vérifie la date d'un contrat et qu'un pilote n'est pas déjà sous contrat valide
+-- lors de la création d'un nouveau contrat.
 CREATE OR REPLACE TRIGGER contrat_check BEFORE INSERT OR UPDATE ON Contrat FOR EACH ROW
+DECLARE
+    valide BOOLEAN := FALSE;
+    CURSOR Contrat IS
+        SELECT Annee_debut, Annee_fin
+        FROM Contrat C
+        WHERE Id_pilote = :NEW.Id_pilote;
 BEGIN
     date_inferior_to_current_time(:new.Annee_debut);
+    --  Désactivé car cela cause une erreur de table mutante. Je n'ai pas trouvé
+    --  de résolution au problème, après avoir pensé à changer la structure de
+    --  données ou utiliser une table temporaire...
+    --  FOR tuple IN Contrat LOOP
+        --  IF ((:NEW.Annee_debut BETWEEN tuple.Annee_debut AND tuple.Annee_fin)
+                --  OR (:NEW.Annee_fin BETWEEN tuple.Annee_debut AND tuple.Annee_fin)) THEN
+            --  valide := TRUE;
+        --  END IF;
+    --  END LOOP;
+    --  IF valide = TRUE THEN
+        --  RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the pilot is/was already under a contract during this new contract !');
+    --  END IF;
+END;
+/
+
+-- Vérifie qu'un pilote est bien sous un contrat valide lors de sa participation
+-- à une course.
+CREATE OR REPLACE TRIGGER participe_check BEFORE INSERT OR UPDATE ON Participe FOR EACH ROW
+DECLARE
+    valide BOOLEAN := FALSE;
+    CURSOR Contrat IS
+        SELECT Annee_debut, Annee_fin
+        FROM Contrat C
+        WHERE Id_pilote = :NEW.Id_pilote;
+BEGIN
+    FOR tuple IN Contrat LOOP
+        IF (:NEW.Date_course BETWEEN tuple.Annee_debut AND tuple.Annee_fin) THEN
+            valide := TRUE;
+        END IF;
+    END LOOP;
+    IF valide = FALSE THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the pilot is/was not under a contract during the race !');
+    END IF;
 END;
 /

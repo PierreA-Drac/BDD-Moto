@@ -1,28 +1,28 @@
 Id_pilote;Moto_modele;Moto_annee;Team_nom;Annee_debut;Annee_fin
-0;M1;2012;Monster Yamaha Tech3;2012;2012
-0;Desmosedici GP;2013;Ducati Team;2013;;
-1;M1;2009;Movistar Yamaha MotoGP;2009;2015
-1;M1;2016;Movistar Yamaha MotoGP;2016;2016
-1;Desmosedici GP;2013;Ducati Team;2017;;
-2;M1;2016;Monster Yamaha Tech3;2017;;
-3;M1;2016;Monster Yamaha Tech3;2017;;
-4;Desmosedici GP;2011;Ducati Team;2011;2012
-4;M1;2012;Movistar Yamaha MotoGP;2013;2015
-4;M1;2016;Movistar Yamaha MotoGP;2016;;
-5;GSX-RR;2014;Team Suzuki Ecstar MotoGP;2015;2016
-5;M1;2016;Movistar Yamaha MotoGP;2017;;
-6;M1;2009;Monster Yamaha Tech3;2011;2013
-6;Desmosedici GP;2013;Ducati Team;2014;2014
-6;RC213V;2012;LCR Honda;2015;;
-7;RC213V;2012;Repsol Honda Team;2013;;
-8;RC213V;2006;Repsol Honda Team;2006;2011
-8;RC213V;2012;Repsol Honda Team;2012;;
-9;Desmosedici GP;2013;Ducati Team;2013;2016
-9;GSX-RR;2014;Team Suzuki Ecstar MotoGP;2017;;
-10;GSX-RR;2014;Team Suzuki Ecstar MotoGP;2014;;
-11;RC213V-RS;2015;LCR Honda;2015;;
-12;GSX-R1000;2014;Voltcom Crescent Suzuki;2014;;
-13;GSX-R1000;2011;Voltcom Crescent Suzuki;2011;2013
-13;GSX-R1000;2014;Voltcom Crescent Suzuki;2014;2015
-14;ZX-10R;2010;Kawasaki Racing Team;2010;2014
-14;ZX-10R;2015;Kawasaki Racing Team;2015;;
+0;M1;2012;Monster Yamaha Tech3;2012-01-01;2012-12-31
+0;Desmosedici GP;2013;Ducati Team;2013-01-01;2019-12-31
+1;M1;2009;Movistar Yamaha MotoGP;2009-01-01;2015-12-31
+1;M1;2016;Movistar Yamaha MotoGP;2016-01-01;2016-12-31
+1;Desmosedici GP;2013;Ducati Team;2017-01-01;2019-12-31
+2;M1;2016;Monster Yamaha Tech3;2017-01-01;2019-12-31
+3;M1;2016;Monster Yamaha Tech3;2017-01-01;2019-12-31
+4;Desmosedici GP;2011;Ducati Team;2011-01-01;2012-12-31
+4;M1;2012;Movistar Yamaha MotoGP;2013-01-01;2015-12-31
+4;M1;2016;Movistar Yamaha MotoGP;2016-01-01;2019-12-31
+5;GSX-RR;2014;Team Suzuki Ecstar MotoGP;2015-01-01;2016-12-31
+5;M1;2016;Movistar Yamaha MotoGP;2017-01-01;2019-12-31
+6;M1;2009;Monster Yamaha Tech3;2011-01-01;2013-12-31
+6;Desmosedici GP;2013;Ducati Team;2014-01-01;2014-12-31
+6;RC213V;2012;LCR Honda;2015-01-01;2019-12-31
+7;RC213V;2012;Repsol Honda Team;2013-01-01;2019-12-31
+8;RC213V;2006;Repsol Honda Team;2006-01-01;2011-12-31
+8;RC213V;2012;Repsol Honda Team;2012-01-01;2019-12-31
+9;Desmosedici GP;2013;Ducati Team;2013-01-01;2016-12-31
+9;GSX-RR;2014;Team Suzuki Ecstar MotoGP;2017-01-01;2019-12-31
+10;GSX-RR;2014;Team Suzuki Ecstar MotoGP;2014-01-01;2019-12-31
+11;RC213V-RS;2015;LCR Honda;2015-01-01;2019-12-31
+12;GSX-R1000;2014;Voltcom Crescent Suzuki;2014-01-01;2019-12-31
+13;GSX-R1000;2011;Voltcom Crescent Suzuki;2011-01-01;2013-12-31
+13;GSX-R1000;2014;Voltcom Crescent Suzuki;2014-01-01;2015-12-31
+14;ZX-10R;2010;Kawasaki Racing Team;2010-01-01;2014-12-31
+14;ZX-10R;2015;Kawasaki Racing Team;2015-01-01;2019-12-31
