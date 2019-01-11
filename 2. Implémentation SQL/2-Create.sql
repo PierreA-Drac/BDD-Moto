@@ -12,9 +12,8 @@ ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 CREATE TABLE Marque
 (
     Nom         VARCHAR(32) NOT NULL,
-    Annee       DATE,   -- CHECK with trigger.
-    -- TODO Check the nationality with a trigger.
-    Nationalite CHAR(2) CHECK (Nationalite IN (NULL, 'FR', 'GB', 'US', 'IT', 'ES', 'JP', 'CH', 'DE')),
+    Annee       DATE,       -- CHECK with a trigger.
+    Nationalite CHAR(2),    -- CHECK with a trigger.
     PRIMARY KEY (Nom)
 );
 
@@ -29,23 +28,23 @@ CREATE TABLE Modele_moto
 (
     Marque      VARCHAR(32) NOT NULL,
     Nom         VARCHAR(32) NOT NULL,
-    Annee       DATE        NOT NULL, -- CHECK with trigger.
+    Annee       DATE        NOT NULL, -- CHECK with a trigger.
     Cylindree   FLOAT       CHECK (Cylindree > 20 AND Cylindree < 2000),
     Couple      FLOAT       CHECK (Couple > 1     AND Couple < 20),
     Puissance   FLOAT       CHECK (Puissance > 1  AND Puissance < 500),
     Poids       FLOAT       CHECK (Poids > 30     AND Poids < 500),
     Prix        NUMBER(6)   CHECK (Prix > 100 AND Prix < 500000),
-    Genre       VARCHAR(40) NOT NULL CHECK (Genre IN (NULL, 'Sportive', 'Cafe Racer')),
+    Genre       VARCHAR(40) NOT NULL CHECK (Genre IN ('Sportive', 'Cafe Racer')),
     PRIMARY KEY (nom, annee)
 );
 
 CREATE TABLE Pilote
 (
-    Id          NUMBER(4)   NOT NULL,
+    Id          NUMBER(4)   NOT NULL, -- CHECK with a trigger.
     Nom         VARCHAR(32) NOT NULL,
     Prenom      VARCHAR(32) NOT NULL,
     Age         NUMBER(3)   CHECK (Age BETWEEN 10 and 100),
-    Nationalite CHAR(2)     CHECK (Nationalite IN (NULL, 'FR', 'GB', 'US', 'IT', 'ES', 'JP', 'CH', 'DE')),
+    Nationalite CHAR(2),    -- CHECK with a trigger.
     Sexe        CHAR(1)     CHECK (Sexe IN (NULL, 'H', 'F')),
     Numero      NUMBER(2)   CHECK (Numero BETWEEN 0 and 99),
     PRIMARY KEY (id)
@@ -54,14 +53,14 @@ CREATE TABLE Pilote
 CREATE TABLE Championnat
 (
     Nom         VARCHAR(32) NOT NULL,
-    Annee       DATE        NOT NULL,   -- CHECK with trigger.
+    Annee       DATE        NOT NULL,   -- CHECK with a trigger.
     PRIMARY KEY (Nom, Annee)
 );
 
 CREATE TABLE Circuit
 (
     Nom      VARCHAR(32) NOT NULL,
-    Pays     CHAR(2)     NOT NULL CHECK (Pays IN (NULL, 'FR', 'GB', 'US', 'IT', 'ES', 'JP', 'CH', 'DE')),
+    Pays     CHAR(2)     NOT NULL,  -- CHECK with a trigger.
     Longueur FLOAT       CHECK (Longueur BETWEEN 0.5 AND 20),
     PRIMARY KEY (Nom)
 );
@@ -70,10 +69,10 @@ CREATE TABLE Course_vitesse
 (
     Championnat VARCHAR(32) NOT NULL,
     Annee       DATE        NOT NULL,
-    Date_course DATE        NOT NULL,
+    Date_course DATE        NOT NULL, -- CHECK with trigger.
     Circuit     VARCHAR(32) NOT NULL,
-    Nb_tours    NUMBER(2),
-    Duree       FLOAT,
+    Nb_tours    NUMBER(2)   CHECK (Nb_tours BETWEEN 1 AND 30),
+    Duree       FLOAT       CHECK (Duree BETWEEN 1 AND 100),
     PRIMARY KEY (Championnat, Date_course)
 );
 
@@ -83,10 +82,10 @@ CREATE TABLE Participe (
     Date_course     DATE        NOT NULL,
     Modele_moto     VARCHAR(32) NOT NULL,
     Annee_moto      DATE        NOT NULL,
-    Classement      NUMBER(2),
-    Points_gagnes   NUMBER(2),
-    Vitesse_moy     FLOAT,
-    Meilleur_tour   FLOAT,
+    Classement      NUMBER(2)   CHECK (Classement BETWEEN 0 AND 30),
+    Points_gagnes   NUMBER(2)   CHECK (Points_gagnes BETWEEN 0 AND 25),
+    Vitesse_moy     FLOAT       CHECK (Vitesse_moy BETWEEN 0 AND 300),
+    Meilleur_tour   FLOAT       CHECK (Meilleur_tour BETWEEN 0 AND 400),
     PRIMARY KEY (Id_pilote, Championnat, Date_course, Modele_moto, Annee_moto)
 );
 
@@ -161,7 +160,7 @@ CREATE VIEW MotoGP_2016_Score_construc AS
     GROUP BY T.Marque
     ORDER BY Nombre_total_de_point DESC;
 
--- Statistiques sur les pilotes du MotoGP.
+-- Statistiques diverses sur les pilotes du MotoGP.
 CREATE VIEW MotoGP_Pilote_stat AS
     SELECT Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe,
         SUM(Pa.Points_gagnes) AS Total_de_points_gagnes,
@@ -172,7 +171,7 @@ CREATE VIEW MotoGP_Pilote_stat AS
     WHERE Pa.Id_pilote = Pi.Id
         AND Pa.Championnat LIKE 'MotoGP'
     GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe;
--- TODO Fusionner la table ci-dessus et ci-dessous ?
+
 -- Nombre de victoire des pilotes au MotoGP.
 CREATE VIEW MotoGP_Pilote_win AS
     SELECT Pi.Numero, Pi.Nom, Pi.Prenom, COUNT(*) AS Nombre_de_victoire
@@ -183,9 +182,10 @@ CREATE VIEW MotoGP_Pilote_win AS
     GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
     ORDER BY Nombre_de_victoire DESC;
 
--- Création des triggers.
+-- Création des procédures.
 
--- Vérifie qu'une date est inférieure à la date du jour.
+-- Vérifie qu'une date est inférieure à la date du jour. Nécéssite un
+-- trigger/une procédure pour utiliser SYSDATE.
 CREATE OR REPLACE PROCEDURE date_inferior_to_current_time (new_date IN DATE) IS
 BEGIN
     IF new_date > SYSDATE THEN
@@ -194,23 +194,67 @@ BEGIN
 END;
 /
 
--- Vérifie que l'année de création d'une marque est inférieure à la date du jour.
-CREATE OR REPLACE TRIGGER marque_check_date BEFORE INSERT ON Marque FOR EACH ROW
+-- Vérifie qu'une nationalité est correct. On pourrait utiliser un CHECK, mais
+-- il faudrait coper-coller les valeurs de nationalités à la main, alors que
+-- l'on peux les regrouper dans une procédure.
+CREATE OR REPLACE PROCEDURE check_nationalite (nat IN CHAR) IS
+BEGIN
+    IF (nat NOT IN ('FR', 'GB', 'US', 'IT', 'ES', 'JP', 'CH', 'DE', 'AU', 'QT', 'PB')) THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the nationality is incorrect !');
+    END IF;
+END;
+/
+
+-- Création des triggers.
+
+-- Vérifie l'année de création et la nationalité d'une marque.
+CREATE OR REPLACE TRIGGER marque_check BEFORE INSERT OR UPDATE ON Marque FOR EACH ROW
+BEGIN
+    date_inferior_to_current_time(:new.Annee);
+    check_nationalite(:new.Nationalite);
+END;
+/
+
+-- Vérifie l'année d'un modèle de moto.
+CREATE OR REPLACE TRIGGER modele_moto_check BEFORE INSERT OR UPDATE ON Modele_moto FOR EACH ROW
 BEGIN
     date_inferior_to_current_time(:new.Annee);
 END;
 /
 
--- Vérifie que l'année d'un modèle de moto est inférieure à la date du jour.
-CREATE OR REPLACE TRIGGER modele_moto_check_date BEFORE INSERT ON Modele_moto FOR EACH ROW
+-- Vérifie la nationalité d'un pilote.
+CREATE OR REPLACE TRIGGER pilote_check BEFORE INSERT OR UPDATE ON Pilote FOR EACH ROW
+DECLARE
+    previous_pilote_id NUMBER := 0;
+BEGIN
+    check_nationalite(:new.Nationalite);
+END;
+/
+
+-- Vérifie l'année d'un championnat de moto.
+CREATE OR REPLACE TRIGGER championnat_check BEFORE INSERT OR UPDATE ON Championnat FOR EACH ROW
 BEGIN
     date_inferior_to_current_time(:new.Annee);
 END;
 /
 
--- Vérifie que l'année d'un championnat de moto est inférieure à la date du jour.
-CREATE OR REPLACE TRIGGER championnat_check_date BEFORE INSERT ON Championnat FOR EACH ROW
+-- Vérifie le pays d'un circuit de moto.
+CREATE OR REPLACE TRIGGER circuit_check BEFORE INSERT OR UPDATE ON Circuit FOR EACH ROW
 BEGIN
-    date_inferior_to_current_time(:new.Annee);
+    check_nationalite(:new.Pays);
+END;
+/
+
+-- Vérifie la date d'une course de vitesse.
+CREATE OR REPLACE TRIGGER course_vitesse_check BEFORE INSERT OR UPDATE ON Course_vitesse FOR EACH ROW
+BEGIN
+    date_inferior_to_current_time(:new.Date_course);
+END;
+/
+
+-- Vérifie la date d'un contrat.
+CREATE OR REPLACE TRIGGER contrat_check BEFORE INSERT OR UPDATE ON Contrat FOR EACH ROW
+BEGIN
+    date_inferior_to_current_time(:new.Annee_debut);
 END;
 /
