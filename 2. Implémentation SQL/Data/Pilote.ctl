@@ -1,5 +1,5 @@
 LOAD DATA
-INFILE './Data_CSV/Pilote.csv'
+INFILE './Data/Pilote.csv'
 TRUNCATE
 INTO TABLE Pilote
 FIELDS TERMINATED BY ';'

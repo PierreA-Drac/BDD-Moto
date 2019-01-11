@@ -1,5 +1,5 @@
 LOAD DATA
-INFILE './Data_CSV/Circuit.csv'
+INFILE './Data/Circuit.csv'
 TRUNCATE
 INTO TABLE Circuit
 FIELDS TERMINATED BY ';'

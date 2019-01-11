@@ -1,5 +1,5 @@
 LOAD DATA
-INFILE './Data_CSV/Course_vitesse.csv'
+INFILE './Data/Course_vitesse.csv'
 TRUNCATE
 INTO TABLE Course_vitesse
 FIELDS TERMINATED BY ';'

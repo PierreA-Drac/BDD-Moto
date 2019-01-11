@@ -1,0 +1,55 @@
+
+SQL*Loader: Release 11.2.0.2.0 - Production on Fri Jan 11 17:26:48 2019
+
+Copyright (c) 1982, 2009, Oracle and/or its affiliates.  All rights reserved.
+
+Control File:   Data/Modele_moto.ctl
+Data File:      ./Data/Modele_moto.csv
+  Bad File:     Logs/Modele_moto.bad
+  Discard File: Logs/Modele_moto.discard 
+ (Allow all discards)
+
+Number to load: ALL
+Number to skip: 1
+Errors allowed: 50
+Bind array:     64 rows, maximum of 256000 bytes
+Continuation:    none specified
+Path used:      Conventional
+
+Table MODELE_MOTO, loaded from every logical record.
+Insert option in effect for this table: TRUNCATE
+TRAILING NULLCOLS option in effect
+
+   Column Name                  Position   Len  Term Encl Datatype
+------------------------------ ---------- ----- ---- ---- ---------------------
+MARQUE                              FIRST     *   ;       CHARACTER            
+NOM                                  NEXT     *   ;       CHARACTER            
+ANNEE                                NEXT     *   ;       DATE YYYY            
+CYLINDREE                            NEXT     *   ;       CHARACTER            
+COUPLE                               NEXT     *   ;       CHARACTER            
+PUISSANCE                            NEXT     *   ;       CHARACTER            
+POIDS                                NEXT     *   ;       CHARACTER            
+PRIX                                 NEXT     *   ;       CHARACTER            
+GENRE                                NEXT     *   ;       CHARACTER            
+
+
+Table MODELE_MOTO:
+  19 Rows successfully loaded.
+  0 Rows not loaded due to data errors.
+  0 Rows not loaded because all WHEN clauses were failed.
+  0 Rows not loaded because all fields were null.
+
+
+Space allocated for bind array:                 148608 bytes(64 rows)
+Read   buffer bytes: 1048576
+
+Total logical records skipped:          1
+Total logical records read:            19
+Total logical records rejected:         0
+Total logical records discarded:        0
+
+Run began on Fri Jan 11 17:26:48 2019
+Run ended on Fri Jan 11 17:26:48 2019
+
+Elapsed time was:     00:00:00.10
+CPU time was:         00:00:00.00

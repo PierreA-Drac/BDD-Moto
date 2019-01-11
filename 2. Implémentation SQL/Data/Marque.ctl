@@ -1,5 +1,5 @@
 LOAD DATA
-INFILE './Data_CSV/Marque.csv'
+INFILE './Data/Marque.csv'
 TRUNCATE
 INTO TABLE Marque
 FIELDS TERMINATED BY ';'

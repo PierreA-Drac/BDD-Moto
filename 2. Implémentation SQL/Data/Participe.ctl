@@ -1,5 +1,5 @@
 LOAD DATA
-INFILE './Data_CSV/Participe.csv'
+INFILE './Data/Participe.csv'
 TRUNCATE
 INTO TABLE Participe
 FIELDS TERMINATED BY ';'

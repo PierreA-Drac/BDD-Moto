@@ -1,3 +1,22 @@
+-- Supprime les précédentes créations si elles existent.
+
+DROP PROCEDURE date_inferior_to_current_time;
+DROP PROCEDURE check_nationalite;
+DROP VIEW MotoGP_Pilote_win;
+DROP VIEW MotoGP_Pilote_stat;
+DROP VIEW MotoGP_2016_Score_construc;
+DROP VIEW MotoGP_2016_Score_teams;
+DROP VIEW MotoGP_2016_Score_pilotes;
+DROP TABLE Contrat;
+DROP TABLE Participe;
+DROP TABLE Course_vitesse;
+DROP TABLE Circuit;
+DROP TABLE Championnat;
+DROP TABLE Pilote;
+DROP TABLE Modele_moto;
+DROP TABLE Team;
+DROP TABLE Marque;
+
 -- Configuration basique.
 
 -- Autorise l'écriture sur la sortie standard.
@@ -293,3 +312,5 @@ BEGIN
     END IF;
 END;
 /
+
+exit

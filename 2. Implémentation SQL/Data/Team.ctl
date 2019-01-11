@@ -1,5 +1,5 @@
 LOAD DATA
-INFILE './Data_CSV/Team.csv'
+INFILE './Data/Team.csv'
 TRUNCATE
 INTO TABLE Team
 FIELDS TERMINATED BY ';'

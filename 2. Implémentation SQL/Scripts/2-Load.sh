@@ -1,0 +1,9 @@
+sqlldr userid=projet/projet control=Data/Marque.ctl         log=Logs/Marque.log         bad=Logs/Marque.bad         discard=Logs/Marque.discard         skip=1
+sqlldr userid=projet/projet control=Data/Team.ctl           log=Logs/Team.log           bad=Logs/Team.bad           discard=Logs/Team.discard           skip=1
+sqlldr userid=projet/projet control=Data/Modele_moto.ctl    log=Logs/Modele_moto.log    bad=Logs/Modele_moto.bad    discard=Logs/Modele_moto.discard    skip=1
+sqlldr userid=projet/projet control=Data/Pilote.ctl         log=Logs/Pilote.log         bad=Logs/Pilote.bad         discard=Logs/Pilote.discard         skip=1
+sqlldr userid=projet/projet control=Data/Championnat.ctl    log=Logs/Championnat.log    bad=Logs/Championnat.bad    discard=Logs/Championnat.discard    skip=1
+sqlldr userid=projet/projet control=Data/Circuit.ctl        log=Logs/Circuit.log        bad=Logs/Circuit.bad        discard=Logs/Circuit.discard        skip=1
+sqlldr userid=projet/projet control=Data/Course_vitesse.ctl log=Logs/Course_vitesse.log bad=Logs/Course_vitesse.bad discard=Logs/Course_vitesse.discard skip=1
+sqlldr userid=projet/projet control=Data/Contrat.ctl        log=Logs/Contrat.log        bad=Logs/Contrat.bad        discard=Logs/Contrat.discard        skip=1
+sqlldr userid=projet/projet control=Data/Participe.ctl      log=Logs/Participe.log      bad=Logs/Participe.bad      discard=Logs/Participe.discard      skip=1

@@ -1,5 +1,5 @@
 LOAD DATA
-INFILE './Data_CSV/Contrat.csv'
+INFILE './Data/Contrat.csv'
 TRUNCATE
 INTO TABLE Contrat
 FIELDS TERMINATED BY ';'
