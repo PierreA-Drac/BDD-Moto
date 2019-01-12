@@ -209,4 +209,11 @@ SELECT P.Nom, P.Prenom, SUM(PA.points_gagnes) as total_point
 FROM Piote as P,Participe as PA
 GROUP BY P.Nom,P.Prenom, total_point;
 
--- 20. 
+-- 20. Donne la liste des pilotes actifs avec la date de leur dernière participation à une course
+
+SELECT P.Nom,P.prenom,PA.Date_course
+FROM Pilote as P, Participe as PA
+WHERE P.Id = PA.id_pilote
+    AND P.Id = (SELECT C.Id_pilote FROM Contrat as C
+                WHERE YEAR(C.annee_fin)>=2019)
+    AND PA.Date_course = MAX(Date_course);
