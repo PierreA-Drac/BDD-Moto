@@ -1,6 +1,6 @@
 -- Création des séquences.
 
--- Création et configuration de la séquence des IDs des pilotes.
+-- 1. Création et configuration de la séquence des IDs des pilotes.
 DECLARE
     max_pilote_id NUMBER := 0;
 BEGIN

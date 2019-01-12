@@ -29,6 +29,7 @@ ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 
 -- Création des tables.
 
+-- 1. Marques de moto.
 CREATE TABLE Marque
 (
     Nom         VARCHAR(32) NOT NULL,
@@ -37,6 +38,7 @@ CREATE TABLE Marque
     PRIMARY KEY (Nom)
 );
 
+-- 2. Teams concourrant aux championnats.
 CREATE TABLE Team
 (
     Nom    VARCHAR(32) NOT NULL,
@@ -44,6 +46,7 @@ CREATE TABLE Team
     PRIMARY KEY (nom)
 );
 
+-- 3. Modèles de moto.
 CREATE TABLE Modele_moto
 (
     Marque      VARCHAR(32) NOT NULL,
@@ -58,6 +61,7 @@ CREATE TABLE Modele_moto
     PRIMARY KEY (nom, annee)
 );
 
+-- 4. Pilotes appartenant aux teams.
 CREATE TABLE Pilote
 (
     Id          NUMBER(4)   NOT NULL, -- CHECK with a trigger.
@@ -70,6 +74,7 @@ CREATE TABLE Pilote
     PRIMARY KEY (id)
 );
 
+-- 5. Championnats existants.
 CREATE TABLE Championnat
 (
     Nom         VARCHAR(32) NOT NULL,
@@ -77,6 +82,7 @@ CREATE TABLE Championnat
     PRIMARY KEY (Nom, Annee)
 );
 
+-- 6. Circuits sur lesquels les courses se déroulent.
 CREATE TABLE Circuit
 (
     Nom      VARCHAR(32) NOT NULL,
@@ -85,6 +91,7 @@ CREATE TABLE Circuit
     PRIMARY KEY (Nom)
 );
 
+-- 7. Courses appartenants aux championnats.
 CREATE TABLE Course_vitesse
 (
     Championnat VARCHAR(32) NOT NULL,
@@ -96,6 +103,7 @@ CREATE TABLE Course_vitesse
     PRIMARY KEY (Championnat, Date_course)
 );
 
+-- 8. Participation d'un pilote à une course.
 CREATE TABLE Participe (
     Id_pilote       INT         NOT NULL,
     Championnat     VARCHAR(32) NOT NULL,
@@ -109,6 +117,7 @@ CREATE TABLE Participe (
     PRIMARY KEY (Id_pilote, Championnat, Date_course, Modele_moto, Annee_moto)
 );
 
+-- 9. Contrats liants un pilote, une équipe et un modèle de moto.
 CREATE TABLE Contrat (
     Id_pilote   NUMBER(4)   NOT NULL,
     Moto_modele VARCHAR(32) NOT NULL,
@@ -148,7 +157,7 @@ ALTER TABLE Contrat
 
 -- Creéation des vues.
 
--- Liste des scores des pilotes au MotoGP de 2016.
+-- 1. Liste des scores des pilotes au MotoGP de 2016.
 CREATE VIEW MotoGP_2016_Score_pilotes AS
     SELECT Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom, SUM(Pa.Points_gagnes) AS Nombre_total_de_point
     FROM Participe Pa, Pilote Pi
@@ -156,26 +165,32 @@ CREATE VIEW MotoGP_2016_Score_pilotes AS
         AND Pa.Championnat LIKE 'MotoGP'
         AND TO_CHAR(Pa.Date_course, 'YYYY') LIKE '2016'
     GROUP BY Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom
-    ORDER BY Nombre_total_de_point DESC;
+    ORDER BY Nombre_total_de_point DESC
+    WITH READ ONLY;
+GRANT SELECT ON MotoGP_2016_Score_pilotes to PUBLIC;
     
--- Liste des scores des teams au MotoGP de 2016.
+-- 2. Liste des scores des teams au MotoGP de 2016.
 CREATE VIEW MotoGP_2016_Score_teams AS
     SELECT C.Team_nom, SUM(Nombre_total_de_point) AS Nombre_total_de_point
     FROM Contrat C, MotoGP_2016_Score_pilotes S
     WHERE S.Id = C.Id_pilote
         AND TO_DATE(2016, 'YYYY') BETWEEN C.Annee_debut AND C.Annee_fin
     GROUP BY C.Team_nom
-    ORDER BY Nombre_total_de_point DESC;
+    ORDER BY Nombre_total_de_point DESC
+    WITH READ ONLY;
+GRANT SELECT ON MotoGP_2016_Score_teams to PUBLIC;
 
--- List des scores des constructeurs au MotoGP de 2016.
+-- 3. Liste des scores des constructeurs au MotoGP de 2016.
 CREATE VIEW MotoGP_2016_Score_construc AS
     SELECT T.Marque, SUM(Nombre_total_de_point) AS Nombre_total_de_point
     FROM Team T, MotoGP_2016_Score_teams S
     WHERE T.Nom = S.Team_nom
     GROUP BY T.Marque
-    ORDER BY Nombre_total_de_point DESC;
+    ORDER BY Nombre_total_de_point DESC
+    WITH READ ONLY;
+GRANT SELECT ON MotoGP_2016_Score_construc to PUBLIC;
 
--- Statistiques diverses sur les pilotes du MotoGP.
+-- 4. Statistiques diverses sur les pilotes du MotoGP.
 CREATE VIEW MotoGP_Pilote_stat AS
     SELECT Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe,
         SUM(Pa.Points_gagnes) AS Total_de_points_gagnes,
@@ -185,9 +200,11 @@ CREATE VIEW MotoGP_Pilote_stat AS
     FROM Pilote Pi, Participe Pa
     WHERE Pa.Id_pilote = Pi.Id
         AND Pa.Championnat LIKE 'MotoGP'
-    GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe;
+    GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe
+    WITH READ ONLY;
+GRANT SELECT ON MotoGP_Pilote_stat to PUBLIC;
 
--- Nombre de victoire des pilotes au MotoGP.
+-- 5. Nombre de victoire des pilotes au MotoGP.
 CREATE VIEW MotoGP_Pilote_win AS
     SELECT Pi.Numero, Pi.Nom, Pi.Prenom, COUNT(*) AS Nombre_de_victoire
     FROM Pilote Pi, Participe Pa
@@ -195,11 +212,13 @@ CREATE VIEW MotoGP_Pilote_win AS
         AND Pa.Championnat LIKE 'MotoGP'
         AND Pa.Classement = 1
     GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
-    ORDER BY Nombre_de_victoire DESC;
+    ORDER BY Nombre_de_victoire DESC
+    WITH READ ONLY;
+GRANT SELECT ON MotoGP_Pilote_win to PUBLIC;
 
 -- Création des procédures.
 
--- Vérifie qu'une date est inférieure à la date du jour. Nécéssite un
+-- 1. Vérifie qu'une date est inférieure à la date du jour. Nécéssite un
 -- trigger/une procédure pour utiliser SYSDATE.
 CREATE OR REPLACE PROCEDURE date_inferior_to_current_time (new_date IN DATE) IS
 BEGIN
@@ -209,7 +228,7 @@ BEGIN
 END;
 /
 
--- Vérifie qu'une nationalité est correct. On pourrait utiliser un CHECK, mais
+-- 2. Vérifie qu'une nationalité est correct. On pourrait utiliser un CHECK, mais
 -- il faudrait coper-coller les valeurs de nationalités à la main, alors que
 -- l'on peux les regrouper dans une procédure.
 CREATE OR REPLACE PROCEDURE check_nationalite (nat IN CHAR) IS
@@ -222,7 +241,7 @@ END;
 
 -- Création des triggers.
 
--- Vérifie l'année de création et la nationalité d'une marque.
+-- 1. Vérifie l'année de création et la nationalité d'une marque.
 CREATE OR REPLACE TRIGGER marque_check BEFORE INSERT OR UPDATE ON Marque FOR EACH ROW
 BEGIN
     date_inferior_to_current_time(:new.Annee);
@@ -230,14 +249,14 @@ BEGIN
 END;
 /
 
--- Vérifie l'année d'un modèle de moto.
+-- 2. Vérifie l'année d'un modèle de moto.
 CREATE OR REPLACE TRIGGER modele_moto_check BEFORE INSERT OR UPDATE ON Modele_moto FOR EACH ROW
 BEGIN
     date_inferior_to_current_time(:new.Annee);
 END;
 /
 
--- Vérifie la nationalité d'un pilote.
+-- 3. Vérifie la nationalité d'un pilote.
 CREATE OR REPLACE TRIGGER pilote_check BEFORE INSERT OR UPDATE ON Pilote FOR EACH ROW
 DECLARE
     previous_pilote_id NUMBER := 0;
@@ -246,28 +265,28 @@ BEGIN
 END;
 /
 
--- Vérifie l'année d'un championnat de moto.
+-- 4. Vérifie l'année d'un championnat de moto.
 CREATE OR REPLACE TRIGGER championnat_check BEFORE INSERT OR UPDATE ON Championnat FOR EACH ROW
 BEGIN
     date_inferior_to_current_time(:new.Annee);
 END;
 /
 
--- Vérifie le pays d'un circuit de moto.
+-- 5. Vérifie le pays d'un circuit de moto.
 CREATE OR REPLACE TRIGGER circuit_check BEFORE INSERT OR UPDATE ON Circuit FOR EACH ROW
 BEGIN
     check_nationalite(:new.Pays);
 END;
 /
 
--- Vérifie la date d'une course de vitesse.
+-- 6. Vérifie la date d'une course de vitesse.
 CREATE OR REPLACE TRIGGER course_vitesse_check BEFORE INSERT OR UPDATE ON Course_vitesse FOR EACH ROW
 BEGIN
     date_inferior_to_current_time(:new.Date_course);
 END;
 /
 
--- Vérifie la date d'un contrat et qu'un pilote n'est pas déjà sous contrat valide
+-- 7. Vérifie la date d'un contrat et qu'un pilote n'est pas déjà sous contrat valide
 -- lors de la création d'un nouveau contrat.
 CREATE OR REPLACE TRIGGER contrat_check BEFORE INSERT OR UPDATE ON Contrat FOR EACH ROW
 DECLARE
@@ -279,7 +298,7 @@ DECLARE
 BEGIN
     date_inferior_to_current_time(:new.Annee_debut);
     --  Désactivé car cela cause une erreur de table mutante. Je n'ai pas trouvé
-    --  de résolution au problème, après avoir pensé à changer la structure de
+    --  de résolution au problème, après avoir essayé de changer la structure de
     --  données ou utiliser une table temporaire...
     --  FOR tuple IN Contrat LOOP
         --  IF ((:NEW.Annee_debut BETWEEN tuple.Annee_debut AND tuple.Annee_fin)
@@ -293,7 +312,7 @@ BEGIN
 END;
 /
 
--- Vérifie qu'un pilote est bien sous un contrat valide lors de sa participation
+-- 8. Vérifie qu'un pilote est bien sous un contrat valide lors de sa participation
 -- à une course.
 CREATE OR REPLACE TRIGGER participe_check BEFORE INSERT OR UPDATE ON Participe FOR EACH ROW
 DECLARE
