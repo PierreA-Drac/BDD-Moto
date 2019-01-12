@@ -136,8 +136,9 @@ ALTER TABLE Team
 ALTER TABLE Modele_moto
     ADD FOREIGN KEY (Marque) REFERENCES Marque (Nom);
     
-ALTER TABLE Course_vitesse
-    ADD FOREIGN KEY (Championnat, Annee) REFERENCES Championnat (Nom, Annee);
+-- Désactivé car on utilise un trigger pour ces clés, conformément à la consigne.
+--  ALTER TABLE Course_vitesse
+    --  ADD FOREIGN KEY (Championnat, Annee) REFERENCES Championnat (Nom, Annee);
 ALTER TABLE Course_vitesse
     ADD FOREIGN KEY (Circuit) REFERENCES Circuit (Nom);
 
@@ -329,6 +330,22 @@ BEGIN
     END LOOP;
     IF valide = FALSE THEN
         RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the pilot is/was not under a contract during the race !');
+    END IF;
+END;
+/
+
+-- 9. Vérifie les clés étrangères de la table Course_vitesse.
+CREATE OR REPLACE TRIGGER verif_course_vitesse_cles BEFORE INSERT OR UPDATE ON Course_vitesse FOR EACH ROW
+DECLARE
+    nom Championnat.Nom%TYPE;
+BEGIN
+    SELECT Nom INTO nom
+    FROM Championnat C
+    WHERE C.Nom = :NEW.Championnat
+        AND C.Annee = :NEW.Annee;
+
+    IF SQL%NOTFOUND THEN
+        RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the championship does not exist');
     END IF;
 END;
 /
