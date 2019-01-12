@@ -291,11 +291,11 @@ END;
 -- lors de la création d'un nouveau contrat.
 CREATE OR REPLACE TRIGGER contrat_check BEFORE INSERT OR UPDATE ON Contrat FOR EACH ROW
 DECLARE
-    valide BOOLEAN := FALSE;
-    CURSOR Contrat IS
-        SELECT Annee_debut, Annee_fin
-        FROM Contrat C
-        WHERE Id_pilote = :NEW.Id_pilote;
+    --  valide BOOLEAN := FALSE;
+    --  CURSOR Contrat IS
+        --  SELECT Annee_debut, Annee_fin
+        --  FROM Contrat C
+        --  WHERE Id_pilote = :NEW.Id_pilote;
 BEGIN
     date_inferior_to_current_time(:new.Annee_debut);
     --  Désactivé car cela cause une erreur de table mutante. Je n'ai pas trouvé
@@ -314,18 +314,20 @@ END;
 /
 
 -- 8. Vérifie qu'un pilote est bien sous un contrat valide lors de sa participation
--- à une course.
+-- à une course et que la moto insérée est bien celle du contrat.
 CREATE OR REPLACE TRIGGER participe_check BEFORE INSERT OR UPDATE ON Participe FOR EACH ROW
 DECLARE
     valide BOOLEAN := FALSE;
     CURSOR Contrat IS
-        SELECT Annee_debut, Annee_fin
+        SELECT Annee_debut, Annee_fin, Moto_modele, Moto_annee
         FROM Contrat C
         WHERE Id_pilote = :NEW.Id_pilote;
 BEGIN
     FOR tuple IN Contrat LOOP
         IF (:NEW.Date_course BETWEEN tuple.Annee_debut AND tuple.Annee_fin) THEN
-            valide := TRUE;
+            IF (:NEW.Modele_moto = tuple.Moto_modele AND :NEW.Annee_moto = tuple.Moto_annee) THEN
+                valide := TRUE;
+            END IF;
         END IF;
     END LOOP;
     IF valide = FALSE THEN
