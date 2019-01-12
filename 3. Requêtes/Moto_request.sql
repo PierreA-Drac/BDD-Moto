@@ -193,6 +193,20 @@ WHERE PA.Id_pilote = P.Id
     AND PA.Date_course = (SELECT CV.Date_course FROM Course_vitesse as CV
                             WHERE CV.Circuit = C.Nom)
     AND PA.Classement = 1;
-ORDER BY nb_win ASC
+ORDER BY nb_win DESC
 
 
+--18. Mise à jour de l'âge de tous les pilotes actif (encore sous contrat) pour la nouvelle année
+
+UPDATE Pilote
+SET Age = Age + 1
+WHERE Id = (SELECT Id_pilote FROM contrat
+            WHERE YEAR(annee_fin) >= 2019);
+
+-- 19. Total de points gagnés par chaque pilotes au fil des courses
+
+SELECT P.Nom, P.Prenom, SUM(PA.points_gagnes) as total_point
+FROM Piote as P,Participe as PA
+GROUP BY P.Nom,P.Prenom, total_point;
+
+-- 20. 
