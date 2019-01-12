@@ -103,13 +103,12 @@ WHERE participations >= 10
 GROUP BY Modele_moto;
 
 
--- 9. Tous les contrats ne possédant pas encore de date de fin et étant commencé depuis 4 ans 
---(En considérant que nous sommes en 2019) se voient fixés une date de fin en 2020
-
+-- 9. Tous les contrats terminant en 2019 mais ayant une durée inférieure à 3 ans 
+-- (donc commençant après 2016) sont allongés jusqu'à 2021
 UPDATE Contrat 
-SET annee_fin = 2020
-WHERE annee_fin = NULL 
-    AND annee_debut <= 2019;
+SET annee_fin = '2021-12-31'
+WHERE YEAR(annee_fin) = 2019
+    AND YEAR(annee_fin) - YEAR(année_début) < 3
 
 -- 10. Augmentation de 10% des prix de tous les modèles de moto appartenant à des marques britanniquess
 
@@ -134,16 +133,18 @@ WHERE Puissance = (SELECT MAX(Puissance)
     AND MMA.Annee = P.Anne_moto;
 
 
--- 12. Supprime toutes les participations ayant été effectuées avec un modèle différent
--- De celui stipulé par le contrat du pilote  (participations illégales)
+-- 12. Supprime toutes les participations ayant été effectuées avec des motos de type
+-- "cafe racer" de plus de 200 kg sur des circuits Espagnols
 
-DELETE FROM Participe 
-WHERE Modele_moto != (SELECT Moto_modele FROM contrat
-                    WHERE (YEAR(Participe.date_course BETWEEN Contrat.annee_debut AND Contrat.annee_fin)
-                        OR Contrat.annee_fin IS NULL AND YEAR(Participe) > Contrat.annee_debut))
-OR Anne_moto != (SELECT Moto_Annee FROM contrat
-                    WHERE (YEAR(Participe.date_course BETWEEN Contrat.annee_debut AND Contrat.annee_fin)
-                        OR Contrat.annee_fin IS NULL AND YEAR(Participe) > Contrat.annee_debut));
+DELETE FROM Participe
+WHERE Modele_moto = (SELECT Nom FROM Modele_moto 
+                    WHERE Genre = 'Cafe Racer'
+                        AND Poids >= 200)
+AND Date_course = (SELECT Date_course FROM Course_vitesse
+                    WHERE Circuit = (SELECT Nom FROM circuit
+                                        WHERE Pays = 'ES'));
+
+
 
 
 -- 13. Supprime toutes les participations effectuées par des pilotes brittaniques
@@ -176,5 +177,22 @@ AND Championnat = (SELECT Championnat as CHB FROM Course_vitesse as CV
                         WHERE CV.Circuit = ( SELECT Nom from Circuit as C
                                                 WHERE C.Pays = 'AU') 
                         AND CHB = Participe.Championnat);
+
+
+-- 16. Donne le nombre de contrats effectués pour chaque modèle de moto
+
+SELECT Moto_modele, Moto_annee, count(Moto_modele,Moto_annee) AS nb_of_contracts
+FROM Contrat
+GROUP BY Moto_modele,Moto_annee;
+
+-- 17. Donne le classement du nombre de victoires par pilote pour chaque circuit
+
+SELECT C.Nom , P.Nom, P.Prenom, COUNT(PA.Id_pilote) as nb_win
+FROM Circuit as C, Pilote as P, Participe as PA
+WHERE PA.Id_pilote = P.Id
+    AND PA.Date_course = (SELECT CV.Date_course FROM Course_vitesse as CV
+                            WHERE CV.Circuit = C.Nom)
+    AND PA.Classement = 1;
+ORDER BY nb_win ASC
 
 
