@@ -1,3 +1,6 @@
+-- Configure la taille d'une ligne sur le terminal.
+set linesize 230
+
 -- Censé lister les triggers de la table Participe. Cependant, la table
 -- ALL_TRIGGERS ne semble pas contenir les triggers que l'on a défini... Je
 -- ne comprends pas pourquoi.

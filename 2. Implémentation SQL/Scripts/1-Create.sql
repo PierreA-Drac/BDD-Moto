@@ -1,3 +1,14 @@
+-- Configuration basique.
+
+-- Autorise l'écriture sur la sortie standard.
+set serverout on
+-- Configure l'éditeur de texte par défaut.
+define _editor=vim
+-- Configure le format de date par défaut.
+ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
+-- Configure la taille d'une ligne sur le terminal.
+set linesize 230
+
 -- Supprime les précédentes créations si elles existent.
 
 DROP SEQUENCE PiloteID;
@@ -17,15 +28,6 @@ DROP TABLE Pilote;
 DROP TABLE Modele_moto;
 DROP TABLE Team;
 DROP TABLE Marque;
-
--- Configuration basique.
-
--- Autorise l'écriture sur la sortie standard.
-set serverout on
--- Configure l'éditeur de texte par défaut.
-define _editor=vim
--- Configure le format de date par défaut.
-ALTER SESSION SET NLS_DATE_FORMAT = 'YYYY-MM-DD';
 
 -- Création des tables.
 

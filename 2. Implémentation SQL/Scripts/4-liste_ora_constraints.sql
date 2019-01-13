@@ -1,3 +1,6 @@
+-- Configure la taille d'une ligne sur le terminal.
+set linesize 230
+
 -- Liste toutes les contraites de clés étrangères -> clés primaires, trié
 -- par nom de table.
 SELECT C1.TABLE_NAME AS Table_esclave, C2.TABLE_NAME AS Table_maitre, C1.CONSTRAINT_NAME AS Contrainte_id
