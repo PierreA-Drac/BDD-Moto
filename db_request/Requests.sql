@@ -204,7 +204,7 @@ SET Age = Age + 1
 WHERE Id = (SELECT Id_pilote FROM contrat
             WHERE YEAR(annee_fin) >= 2019);
 
--- 19. Total de points gagnés par chaque pilotes au fil des courses
+-- 19. Total de points gagnés par chaque pilotes au fil des championnats
 
 SELECT P.Nom, P.Prenom, SUM(PA.points_gagnes) as total_point
 FROM Piote as P,Participe as PA
