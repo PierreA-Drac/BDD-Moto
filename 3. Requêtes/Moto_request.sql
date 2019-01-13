@@ -10,14 +10,14 @@ SELECT Pi.prenom, Pi.nom, Pi.numero, SUM(Pa.points_gagnes) AS Nombre_total_de_po
 FROM Pilote Pi, Participe Pa
 WHERE Pa.id_pilote = Pi.id
     AND Pa.championnat LIKE "MotoGP"
-    AND Pa.date_course LIKE "%2016"
+    AND YEAR(Pa.date_course) LIKE "%2016"
 GROUP BY Pi.id
 ORDER BY Nombre_total_de_point DESC;
 
 --3. Score des teams au MotoGP de 2016 :
 
-SELECT F.nom_team, SUM(Nombre_total_de_point_pilote) AS Nombre_total_de_point
-FROM Fait_partie F, (
+SELECT C.Team_nom, SUM(Nombre_total_de_point_pilote) AS Nombre_total_de_point
+FROM Contrat AS C, (
     SELECT Pi.id, SUM(Pa.points_gagnes) AS Nombre_total_de_point_pilote
     FROM Pilote Pi, Participe Pa
     WHERE Pa.id_pilote = Pi.id
@@ -25,21 +25,21 @@ FROM Fait_partie F, (
         AND Pa.date_course LIKE "%2016"
     GROUP BY Pi.id
 ) AS score_pilote
-WHERE score_pilote.id = F.id_pilote
-    AND F.annee_debut <= 2016
+WHERE score_pilote.id = C.id_pilote
+    AND YEAR(C.annee_debut) <= 2016
     AND (
-        F.annee_fin >= 2016
-        OR F.annee_fin IS NULL
+        YEAR(C.annee_fin) >= 2016
+        OR C.annee_fin IS NULL
     )
-GROUP BY F.nom_team
+GROUP BY C.nom_team
 ORDER BY Nombre_total_de_point DESC;
 
 --4. Score des marques au MotoGP de 2016 :
 
 SELECT T.marque, SUM(Nombre_total_de_point_team) AS Nombre_total_de_point
 FROM Team T, (
-    SELECT F.nom_team, SUM(Nombre_total_de_point_pilote) AS Nombre_total_de_point_team
-    FROM Fait_partie F, (
+    SELECT C.Team_nom, SUM(Nombre_total_de_point_pilote) AS Nombre_total_de_point_team
+    FROM Contrat C, (
         SELECT Pi.id, SUM(Pa.points_gagnes) AS Nombre_total_de_point_pilote
         FROM Pilote Pi, Participe Pa
         WHERE Pa.id_pilote = Pi.id
@@ -47,13 +47,13 @@ FROM Team T, (
             AND Pa.date_course LIKE "%2016"
         GROUP BY Pi.id
     ) AS score_pilote
-    WHERE score_pilote.id = F.id_pilote
-        AND F.annee_debut <= 2016
+    WHERE score_pilote.id = C.id_pilote
+        AND YEAR(C.annee_debut) <= 2016
         AND (
-            F.annee_fin >= 2016
-            OR F.annee_fin IS NULL
+            YEAR(C.annee_fin) >= 2016
+            OR C.annee_fin IS NULL
         )
-    GROUP BY F.nom_team
+    GROUP BY C.nom_team
 ) AS score_team
 WHERE T.nom = score_team.nom_team
 GROUP BY T.marque
@@ -68,15 +68,16 @@ WHERE Pa.id_pilote = Pi.id
     AND Pi.pays LIKE "Espagne"
 GROUP BY Pi.id
 
---6. Nombre d'utilisateur de moto sportives de moins de 30 ans :
+--6. Nombre de pilotes de motos de moins de 30 ans utilisant une moto sportive dans leur contrat actuel :
 
 SELECT COUNT(*)
-FROM Utilisateurs U, Possede P, Modele_moto M
-WHERE U.identifiant = P.identifiant
-    AND P.modele = M.nom_modele
-    AND M.type_moto LIKE "Sportive"
-    AND U.age < 30
-    And U.sexe LIKE "Homme"
+FROM Pilote P, Contrat C, Modele_moto M
+WHERE P.Id = C.Id_pilote
+    AND C.Moto_modele = M.Nom
+    AND C.Moto_annee = M.Annee
+    AND M.Genre = 'Sportive'
+    AND P.Age <= 30
+    AND YEAR(C.annee_fin) >= 2019;
 
 --7. Affiche les pilotes n'ayant jamais participé à une course ainsi que ceux
 -- ayant plus de 2 victoires :
