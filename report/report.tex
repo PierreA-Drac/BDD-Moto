@@ -412,6 +412,33 @@ exemple, des précisions sur le type de données, tel que le format de la date.
     \label{lst.loadcsv}
 \end{code}
 
+De plus, nous avons utilisé une séquence (initialisée à partir du nombre maximum
+déjà inséré dans la base de données) afin de générer des entiers naturels
+consécutifs en tant qu'identifiant pour nos pilotes :
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    -- Création des séquences.
+
+    -- 1. Création et configuration de la séquence des IDs des pilotes.
+    DECLARE
+        max_pilote_id NUMBER := 0;
+    BEGIN
+        SELECT MAX(Id) INTO max_pilote_id FROM Pilote;
+        EXECUTE IMMEDIATE 'CREATE SEQUENCE PiloteID INCREMENT BY 1 START WITH ' || (max_pilote_id + 1);
+    END; 
+    /
+    CREATE OR REPLACE TRIGGER pilote_set_id BEFORE INSERT ON Pilote FOR EACH ROW
+    DECLARE
+    BEGIN
+        :NEW.Id := PiloteID.NextVal;
+    END;
+    /
+    \end{minted}
+    \caption{Code SQL permettant d'initialiser et d'utiliser une séquence}
+    \label{lst.seq}
+\end{code}
+
 \subsection{Manipulation des données par requêtes SQL}
 \label{sub.req}
 
@@ -496,14 +523,406 @@ tel que, par exemple, l'année des scores pour ledit championnat.
 \section{SQL Avancé}
 \label{sec.reference}
 
+Cette deuxième section nous amènera à utiliser des fonctionnalités avancées
+d’Oracle DBA et de PL/SQL. Nous étudierons tout d’abord quelques triggers, puis
+opérerons à la récupération de méta-données afin d’obtenir des informations sur
+notre base de données, enfin nous effectuerons une rapide analyse de requête
+SQL.
+
 \subsection{Triggers}
 \label{sub.trig}
+
+Les triggers sont utilisés, dans notre projet, afin d'implémenter des
+contraintes d'intégrités. Pour la plupart des triggers, ces contraintes ne
+peuvent être exprimées avec des clauses CHECK du fait qu’il faut  récupérer les
+valeurs de certains tuples d’une autre table et qu’il est nécessaire d’avoir un
+contrôle de flux en fonction des résultats. Pour un des triggers ci-dessous,
+nous avons ré-implémenté le fonctionnement des clés étrangères, comme demandé
+dans le sujet.
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    -- Création des procédures.
+
+    -- 1. Vérifie qu'une date est inférieure à la date du jour. Nécéssite un
+    -- trigger/une procédure pour utiliser SYSDATE.
+    CREATE OR REPLACE PROCEDURE date_inferior_to_current_time (new_date IN DATE) IS
+    BEGIN
+        IF new_date > SYSDATE THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the date is greater than today !');
+        END IF;
+    END;
+    /
+
+    -- 2. Vérifie qu'une nationalité est correct. On pourrait utiliser un CHECK, mais
+    -- il faudrait coper-coller les valeurs de nationalités à la main, alors que
+    -- l'on peux les regrouper dans une procédure.
+    CREATE OR REPLACE PROCEDURE check_nationalite (nat IN CHAR) IS
+    BEGIN
+        IF (nat NOT IN ('FR', 'GB', 'US', 'IT', 'ES', 'JP', 'CH', 'DE', 'AU', 'QT', 'PB')) THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the nationality is incorrect !');
+        END IF;
+    END;
+    /
+
+    -- Création des triggers.
+
+    -- 1. Vérifie l'année de création et la nationalité d'une marque.
+    CREATE OR REPLACE TRIGGER marque_check BEFORE INSERT OR UPDATE ON Marque FOR EACH ROW
+    BEGIN
+        date_inferior_to_current_time(:new.Annee);
+        check_nationalite(:new.Nationalite);
+    END;
+    /
+
+    -- 2. Vérifie l'année d'un modèle de moto.
+    CREATE OR REPLACE TRIGGER modele_moto_check BEFORE INSERT OR UPDATE ON Modele_moto FOR EACH ROW
+    BEGIN
+        date_inferior_to_current_time(:new.Annee);
+    END;
+    /
+
+    -- 3. Vérifie la nationalité d'un pilote.
+    CREATE OR REPLACE TRIGGER pilote_check BEFORE INSERT OR UPDATE ON Pilote FOR EACH ROW
+    DECLARE
+        previous_pilote_id NUMBER := 0;
+    BEGIN
+        check_nationalite(:new.Nationalite);
+    END;
+    /
+
+    -- 4. Vérifie l'année d'un championnat de moto.
+    CREATE OR REPLACE TRIGGER championnat_check BEFORE INSERT OR UPDATE ON Championnat FOR EACH ROW
+    BEGIN
+        date_inferior_to_current_time(:new.Annee);
+    END;
+    /
+
+    -- 5. Vérifie le pays d'un circuit de moto.
+    CREATE OR REPLACE TRIGGER circuit_check BEFORE INSERT OR UPDATE ON Circuit FOR EACH ROW
+    BEGIN
+        check_nationalite(:new.Pays);
+    END;
+    /
+
+    -- 6. Vérifie la date d'une course de vitesse.
+    CREATE OR REPLACE TRIGGER course_vitesse_check BEFORE INSERT OR UPDATE ON Course_vitesse FOR EACH ROW
+    BEGIN
+        date_inferior_to_current_time(:new.Date_course);
+    END;
+    /
+
+    -- 7. Vérifie la date d'un contrat et qu'un pilote n'est pas déjà sous contrat valide
+    -- lors de la création d'un nouveau contrat.
+    CREATE OR REPLACE TRIGGER contrat_check BEFORE INSERT OR UPDATE ON Contrat FOR EACH ROW
+    DECLARE
+        --  valide BOOLEAN := FALSE;
+        --  CURSOR Contrat IS
+            --  SELECT Annee_debut, Annee_fin
+            --  FROM Contrat C
+            --  WHERE Id_pilote = :NEW.Id_pilote;
+    BEGIN
+        date_inferior_to_current_time(:new.Annee_debut);
+        --  Désactivé car cela cause une erreur de table mutante. Je n'ai pas trouvé
+        --  de résolution au problème, après avoir essayé de changer la structure de
+        --  données ou utiliser une table temporaire...
+        --  FOR tuple IN Contrat LOOP
+            --  IF ((:NEW.Annee_debut BETWEEN tuple.Annee_debut AND tuple.Annee_fin)
+                    --  OR (:NEW.Annee_fin BETWEEN tuple.Annee_debut AND tuple.Annee_fin)) THEN
+                --  valide := TRUE;
+            --  END IF;
+        --  END LOOP;
+        --  IF valide = TRUE THEN
+            --  RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the pilot is/was already under a contract during this new contract !');
+        --  END IF;
+    END;
+    /
+
+    -- 8. Vérifie qu'un pilote est bien sous un contrat valide lors de sa participation
+    -- à une course et que la moto insérée est bien celle du contrat.
+    CREATE OR REPLACE TRIGGER participe_check BEFORE INSERT OR UPDATE ON Participe FOR EACH ROW
+    DECLARE
+        valide BOOLEAN := FALSE;
+        CURSOR Contrat IS
+            SELECT Annee_debut, Annee_fin, Moto_modele, Moto_annee
+            FROM Contrat C
+            WHERE Id_pilote = :NEW.Id_pilote;
+    BEGIN
+        FOR tuple IN Contrat LOOP
+            IF (:NEW.Date_course BETWEEN tuple.Annee_debut AND tuple.Annee_fin) THEN
+                IF (:NEW.Modele_moto = tuple.Moto_modele AND :NEW.Annee_moto = tuple.Moto_annee) THEN
+                    valide := TRUE;
+                END IF;
+            END IF;
+        END LOOP;
+        IF valide = FALSE THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the pilot is/was not under a contract during the race !');
+        END IF;
+    END;
+    /
+
+    -- 9. Vérifie les clés étrangères de la table Course_vitesse.
+    CREATE OR REPLACE TRIGGER verif_course_vitesse_cles BEFORE INSERT OR UPDATE ON Course_vitesse FOR EACH ROW
+    DECLARE
+        nom Championnat.Nom%TYPE;
+    BEGIN
+        SELECT Nom INTO nom
+        FROM Championnat C
+        WHERE C.Nom = :NEW.Championnat
+            AND C.Annee = :NEW.Annee;
+
+        IF SQL%NOTFOUND THEN
+            RAISE_APPLICATION_ERROR(-20001, 'Insertion cannot be done because the championship does not exist');
+        END IF;
+    END;
+    /
+    \end{minted}
+    \caption{Code PL/SQL programmant les triggers de notre base de données}
+    \label{lst.triggers}
+\end{code}
 
 \subsection{Méta-données}
 \label{sub.metadata}
 
+Les méta-données d'une base de données sont des données stockées à l’intérieur
+même de la base décrivant la base de données elle-même, elles ne font donc pas
+partie du jeu de données initial. Oracle DBA stock ces méta-données dans des
+tables pré-définies spécialement prévues à cet effet. Nous avons donc écris une
+démonstration de la récupération de ces méta-données afin de pouvoir les
+visualiser et avoir des informations sur les contraintes actuellement en vigueur
+dans notre base. Cependant, vous pourrez constater dans les commentaires du code
+que nous nous sommes confrontés à un problème nous empêchant de mener notre
+expérience jusqu’au bout.
+
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    -- Liste toutes les contraites de clés étrangères -> clés primaires, trié
+    -- par nom de table.
+    SELECT C1.TABLE_NAME AS Table_esclave, C2.TABLE_NAME AS Table_maitre, C1.CONSTRAINT_NAME AS Contrainte_id
+    FROM USER_CONSTRAINTS C1, USER_CONSTRAINTS C2
+    WHERE C1.R_CONSTRAINT_NAME = C2.CONSTRAINT_NAME
+        AND C1.CONSTRAINT_TYPE = 'R'
+    ORDER BY C1.TABLE_NAME ASC;
+
+    -- Censé lister les contraintes 'CHECK' de la table Participe. Cependant,
+    -- la table USER_CONSTRAINTS ne semble pas contenir les CHECK que l'on a
+    -- défini... Je ne comprends pas pourquoi.
+    SELECT C.TABLE_NAME, C.CONSTRAINT_NAME
+    FROM USER_CONSTRAINTS C
+    WHERE C.TABLE_NAME = 'Participe'
+        AND C.CONSTRAINT_TYPE = 'C'
+    ORDER BY C.TABLE_NAME ASC;
+
+    -- Censé lister les triggers de la table Participe. Cependant, la table
+    -- ALL_TRIGGERS ne semble pas contenir les triggers que l'on a défini... Je
+    -- ne comprends pas pourquoi.
+    SELECT T.TABLE_NAME, T.TRIGGER_NAME, T.TRIGGER_TYPE, T.TRIGGERING_EVENT
+    FROM ALL_TRIGGERS T
+    WHERE T.TABLE_NAME = 'Participe'
+    ORDER BY T.TABLE_NAME ASC;
+    \end{minted}
+    \caption{Code SQL permettant d'afficher les contrainres de notre base}
+    \label{lst.metadata}
+\end{code}
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    TABLE_ESCLAVE    TABLE_MAITRE     CONTRAINTE_ID
+    --------------------------------- ------------------------------
+    CONTRAT          PILOTE           SYS_C0041933
+    CONTRAT          TEAM             SYS_C0041935
+    CONTRAT          MODELE_MOTO      SYS_C0041934
+    COURSE_VITESSE   CIRCUIT          SYS_C0041929
+    MODELE_MOTO      MARQUE           SYS_C0041928
+    PARTICIPE        PILOTE           SYS_C0041930
+    PARTICIPE        COURSE_VITESSE   SYS_C0041931
+    PARTICIPE        MODELE_MOTO      SYS_C0041932
+    TEAM             MARQUE           SYS_C0041927
+
+    no rows selected
+    
+    no rows selected
+    \end{minted}
+    \caption{Résultat de notre interrogation des méta-données}
+    \label{lst.metadata.res}
+\end{code}
+
+Nous pouvons observer, sur la première requête qui à bien fonctionné, que les
+contraintes d’intégrités entre clés primaires et clés étrangères sont bien
+listées : pour le vérifier, il suffit de mettre en corrélation ce résultat avec
+le script de création de la base, vu dans la Sous-Section~\ref{sub.scheme}. Nous
+avons donc la première colonne avec la table esclave, c’est-à-dire celle qui
+possède la clé étrangère, la table maître dans la deuxième colonne, c’est-à-dire
+celle qui possède la clé primaire. Enfin, dans la troisième colonne, nous avons
+l’identifiant de la contrainte qui est affiché.
+
 \subsection{Analyse des requêtes}
 \label{sub.analyze}
+
+Dans cette dernière section, nous avons utilisé l'outil Oracle Explain Plan afin
+de pouvoir analyser l’exécution de nos requêtes SQL. Cette analyse permet de
+modifier nos requêtes afin qu’elles soient interprétées d’une manière différente
+par l’optimiseur de requête (Cost Based Optimizer (CBO)) lors de la détection
+d’un soucis de performance. L’outil s’utilise à travers une clause SQL puis par
+interrogation d’une table prévue pour contenir les résultats d’Explain Plan.
+Ci-dessous sont listés nos requêtes permettant d’interroger l’outil et récupérer
+le résultat :
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    -- Création des plans d'exécution.
+
+    -- 1. Liste des scores des pilotes au MotoGP de 2016.
+    EXPLAIN PLAN FOR
+        SELECT Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom, SUM(Pa.Points_gagnes) AS Nombre_total_de_point
+        FROM Participe Pa, Pilote Pi
+        WHERE Pa.Id_pilote = Pi.Id
+            AND Pa.Championnat LIKE 'MotoGP'
+            AND TO_CHAR(Pa.Date_course, 'YYYY') LIKE '2016'
+        GROUP BY Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom
+        ORDER BY Nombre_total_de_point DESC;
+    SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY('PLAN_TABLE', null, null));
+
+    -- 2. Liste des scores des teams au MotoGP de 2016.
+    EXPLAIN PLAN FOR
+        SELECT C.Team_nom, SUM(Nombre_total_de_point) AS Nombre_total_de_point
+        FROM Contrat C, MotoGP_2016_Score_pilotes S
+        WHERE S.Id = C.Id_pilote
+            AND TO_DATE(2016, 'YYYY') BETWEEN C.Annee_debut AND C.Annee_fin
+        GROUP BY C.Team_nom
+        ORDER BY Nombre_total_de_point DESC;
+    SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY('PLAN_TABLE', null, null));
+
+    -- 3. Statistiques diverses sur les pilotes du MotoGP.
+    EXPLAIN PLAN FOR
+        SELECT Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe,
+            SUM(Pa.Points_gagnes) AS Total_de_points_gagnes,
+            MIN(Pa.Classement)    AS Meilleur_classement,
+            MAX(Pa.Vitesse_moy)   AS Vitesse_moyenne,
+            MIN(Pa.Meilleur_tour) AS Meilleur_tour
+        FROM Pilote Pi, Participe Pa
+        WHERE Pa.Id_pilote = Pi.Id
+            AND Pa.Championnat LIKE 'MotoGP'
+        GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe;
+    SELECT * FROM TABLE(DBMS_XPLAN.DISPLAY('PLAN_TABLE', null, null));
+    \end{minted}
+    \caption{Code SQL permettant d'utiliser Oracle Explain Plan}
+    \label{lst.expplan}
+\end{code}
+
+Ci-dessous le résultat de nos requêtes d'interrogation du plan d'exécution :
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+-- 1. Liste des scores des pilotes au MotoGP de 2016.
+
+PLAN_TABLE_OUTPUT
+-------------------------------------------------------------------
+Plan hash value: 2815421071
+
+-------------------------------------------------------------------
+|Id|Operation            |Name     |Rows|Bytes|Cost(%CPU)|Time    |
+-------------------------------------------------------------------
+| 0|SELECT STATEMENT     |         |  50| 5750|    9 (34)|00:00:01|
+| 1| SORT ORDER BY       |         |  50| 5750|    9 (34)|00:00:01|
+| 2|  HASH GROUP BY      |         |  50| 5750|    9 (34)|00:00:01|
+|*3|   HASH JOIN         |         |  50| 5750|    7 (15)|00:00:01|
+| 4|    TABLE ACCESS FULL|PILOTE   |  15|  930|    3  (0)|00:00:01|
+|*5|    TABLE ACCESS FULL|PARTICIPE|  50| 2650|    3  (0)|00:00:01|
+-------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+3 - access("PA"."ID_PILOTE"="PI"."ID")
+5 - filter("PA"."CHAMPIONNAT"='MotoGP' AND
+           TO_CHAR(INTERNAL_FUNCTION ("PA"."DATE_COURSE"),'YYYY')='2016')
+
+Note
+-----
+   - dynamic sampling used for this statement (level=2)
+
+-- 2. Liste des scores des teams au MotoGP de 2016.
+
+PLAN_TABLE_OUTPUT
+-----------------------------------------------------------------
+Plan hash value: 2104335280
+
+-------------------------------------------------------------------------
+|Id|Operation                |Name     |Rows |Bytes|Cost(%CPU)|Time    |
+------------------------------------------------------------------------
+| 0|SELECT STATEMENT         |         |   40| 1240|  13  (31)|00:00:01|
+| 1| SORT ORDER BY           |         |   40| 1240|  13  (31)|00:00:01|
+| 2|  HASH GROUP BY          |         |   40| 1240|  13  (31)|00:00:01|
+| 3|   VIEW                  |VM_NWVW_1|   40| 1240|  11  (19)|00:00:01|
+| 4|    HASH GROUP BY        |         |   40| 7040|  11  (19)|00:00:01|
+|*5|     HASH JOIN           |         |   40| 7040|  10  (10)|00:00:01|
+|*6|       HASH JOIN         |         |   12| 1476|   7  (15)|00:00:01|
+|*7|        TABLE ACCESS FULL|CONTRAT  |   12|  732|   3   (0)|00:00:01|
+| 8|        TABLE ACCESS FULL|PILOTE   |   15|  930|   3   (0)|00:00:01|
+|*9|       TABLE ACCESS FULL |PARTICIPE|   50| 2650|   3   (0)|00:00:01|
+------------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   5 - access("PA"."ID_PILOTE"="PI"."ID")
+   6 - access("PI"."ID"="C"."ID_PILOTE")
+   7 - filter("C"."ANNEE_DEBUT"<=TO_DATE('2016','YYYY') AND
+              "C"."ANNEE_FIN">=TO_DATE('2016','YYYY'))
+   9 - filter("PA"."CHAMPIONNAT"='MotoGP' AND
+              TO_CHAR(INTERNAL_FUNCTION ("PA"."DATE_COURSE"),'YYYY')='2016')
+
+Note
+-----
+   - dynamic sampling used for this statement (level=2)
+   
+-- 3. Statistiques diverses sur les pilotes du MotoGP.
+
+PLAN_TABLE_OUTPUT
+-------------------------------------------------------------------
+Plan hash value: 2188167404
+
+-------------------------------------------------------------------
+|Id|Operation           |Name     |Rows |Bytes|Cost(%CPU)|Time    |
+-------------------------------------------------------------------
+| 0|SELECT STATEMENT    |         |   50| 8250|   8  (25)|00:00:01|
+| 1| HASH GROUP BY      |         |   50| 8250|   8  (25)|00:00:01|
+|*2|  HASH JOIN         |         |   50| 8250|   7  (15)|00:00:01|
+| 3|   TABLE ACCESS FULL|PILOTE   |   15| 1230|   3   (0)|00:00:01|
+| 4|   TABLE ACCESS FULL|PARTICIPE|   50| 4150|   3   (0)|00:00:01|
+-------------------------------------------------------------------
+
+Predicate Information (identified by operation id):
+---------------------------------------------------
+
+   2 - access("PA"."ID_PILOTE"="PI"."ID")
+   4 - filter("PA"."CHAMPIONNAT"='MotoGP')
+
+Note
+-----
+   - dynamic sampling used for this statement (level=2)
+
+    \end{minted}
+    \caption{Résultat d'Oracle Explain Plan}
+    \label{lst.expplan.res}
+\end{code}
+
+Nous pouvons ainsi, pour chaque requête, observer toutes les actions effectuées
+par le SGBD. Pour chacune de ses actions nous sont affichés des informations tel
+que le nombre de colonnes traitées, la taille des données, le temps et la
+demande en puissance de traitement estimé pour effectuer l’action. Nous obtenons
+aussi des informations sur l’ordre d’exécution des différentes opérations
+constituant notre requête. Par exemple, pour effectuer une jointure entre Pilote
+et Participe, on observe que notre base demande d’abord un accès complet à ces
+deux tables. Ensuite, la restriction effectuée sur le produit cartésien de nos
+deux tables est opérée à l’aide d’une comparaison de hashs. Il en va de même
+pour le GROUP BY, qui groupe les hashs communs sur une certaine colonne. On
+remarque que l'attribut sur lequel porte la jointure est nommé comme étant un
+accès, tandis que les attributs sur lesquels portent des restrictions sont
+affichés en tant que filtres. Enfin, on observe bien que toutes les opérations
+sont estimées être très peu coûteuse, ce qui est évident compte tenu de la
+faible taille de notre base de données.
 
 \section{Conclusion}
 \label{sec.conc}
