@@ -1,3 +1,33 @@
+
+Skip to content
+
+    Pull requests
+    Issues
+    Marketplace
+    Explore
+
+    @Attlai
+
+The password you provided is weak and can be easily guessed. To increase your security, please change your password as soon as possible.
+
+Read our documentation on safer password practices.
+
+0
+1
+
+    0
+
+PierreA-Drac/BDD-Moto
+Code
+Issues 0
+Pull requests 0
+Projects 0
+Wiki
+Insights
+BDD-Moto/report/report.tex
+19602cb 33 minutes ago
+@PierreA-Drac PierreA-Drac [REPORT] Final part
+941 lines (800 sloc) 36 KB
 % Preamble
 % =============================================================================
 
@@ -159,7 +189,7 @@
 \newpage
 \begin{abstract}
     
-Oracle Database est un système de gestion de bases de données relationnelles
+Oracle Database est un système de gestion de bases de données relationnelle
 (SGBD) utilisé dans le monde entier. Très répandu en entreprise, tant pour
 ses performances que sa fiabilité, nous utilisons ce SGBD afin de créer une
 base de données et d’y effectuer des tâches d’administration. Plusieurs
@@ -177,7 +207,7 @@ L’objectif de cette base est de stocker des informations non pas sur une seule
 saison de course, mais sur plusieurs saisons. De plus, on pourra stocker au sein
 d’une même base plusieurs championnats différents. Beaucoup d'informations
 techniques sont retenues concernant les motos et les résultats des pilotes sur
-chaques courses, ce qui permettra d’obtenir des statistiques poussées et
+chaque course, ce qui permettra d’obtenir des statistiques poussées et
 diversifiées. La base de données possède quelques contraintes, listées
 ci-dessous (pour les moins évidentes) :
 
@@ -186,21 +216,21 @@ ci-dessous (pour les moins évidentes) :
 
     \item Par saison, un pilote peut participer à plusieurs championnats.
 
-    \item Pour un championnat donné, un pilote ne peut faire partit que d'une
+    \item Pour un championnat donné, un pilote ne peut faire partie que d'une
         team. Dans le cas où le pilote participe à plus d'un championnat sur une
-        saison, alors il peut faire partit de plusieurs teams différentes
+        saison, alors il peut faire partie de plusieurs teams différentes
         concourantes sur différents championnats.
 
     \item Pour un championnat donné et une team donné, un pilote ne peut
         utiliser qu'une moto. Dans le cas où le pilote participe à plus d'un
-        championnat différents sur une saison, alors il peut utiliser plusieurs
+        championnat différent sur une saison, alors il peut utiliser plusieurs
         motos différentes sur les différents championnats.
 
     \item Chaque pilote doit être sous contrat pour pouvoir courir dans un
-        championnat. Un contrat est  un CDD liant un pilote, un modèle de moto
+        championnat. Un contrat est un CDD liant un pilote, un modèle de moto
         et une team pendant un temps donné (généralement, quelques années).
 
-    \item La participation d’un pilote à un course correspond à une relation
+    \item La participation d’un pilote à une course correspond à une relation
         entre ladite course et le contrat d’un pilote.
 \end{itemize}
 
@@ -216,8 +246,8 @@ Loader.
 \label{sub.scheme}
 
 La création du schéma de la base de données consiste à créer les tables en
-spécifiant les attributs, leurs types, et leurs contraintes d'intégrités
-basiques tel que les clés primaires et étrangères, ainsi que les contraintes
+spécifiant les attributs, leurs types, et leurs contraintes d'intégrité
+basiques telles que les clés primaires et étrangères, ainsi que les contraintes
 check.
 
 \begin{code}
@@ -365,7 +395,7 @@ présenter un exemple d’un fichier de données CSV et d’un fichier de contr�
 CTL. Le fichier CSV contient les valeurs des données allant s’intégrer dans les
 tables crées précédemment, tandis que le fichier CTL contient des informations
 sur la manière dont les données doivent être chargées depuis le fichier CSV. Par
-exemple, des précisions sur le type de données, tel que le format de la date.
+exemple, des précisions sur le type de données, telles que le format de la date.
 
 \begin{code}
     \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
@@ -442,14 +472,234 @@ consécutifs en tant qu'identifiant pour nos pilotes :
 \subsection{Manipulation des données par requêtes SQL}
 \label{sub.req}
 
-TODO Maël
+Afin de pouvoir interagir avec la base de données, nous avons imaginé et élaboré 20 requêtes qui pourrait être émises dans une situation vraisemblable (pas forcément commune cela dit) tout en tâchant de faire varier les fonctionnalités utilisées. Certaines de ces requêtes pourraient correspondre à des demandes simples de la part d'un utilisateur consultant un site web ayant enregistré les données, mais d'autres requêtes correspondent plutôt à des actions uniques qui seraient demandées dans une situation particulière.
+\\Voici donc la liste de ces 20 requêtes:
+\\
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    --1. On voudrait connaître la liste des championnats différents pour chaque année.
+    
+    SELECT Cv.championnat, SUBSTRING_INDEX(Cv.date_course, "/", -1) AS Annee
+    FROM Course_vitesse Cv
+    GROUP BY Cv.championnat, Annee
+    
+    --2. On voudrait connaître la liste des pilotes et de leur score total au championnat MotoGP de 2016, autrement dit, le classement de ce championnat
+
+    SELECT Pi.prenom, Pi.nom, Pi.numero, SUM(Pa.points_gagnes) AS Nombre_total_de_point
+    FROM Pilote Pi, Participe Pa
+    WHERE Pa.id_pilote = Pi.id
+        AND Pa.championnat LIKE "MotoGP"
+        AND YEAR(Pa.date_course) LIKE "%2016"
+    GROUP BY Pi.id
+    ORDER BY Nombre_total_de_point DESC;
+    
+    -- 3.  Dans le même genre, on voudrait connaître le nombre de points total gagnés par les pilotes dans tous les championnats confondus, afin de faire un classement général
+    
+    SELECT P.Nom, P.Prenom, SUM(PA.points_gagnes) as total_point
+    FROM Piote as P,Participe as PA
+    GROUP BY P.Nom,P.Prenom, total_point;
+    
+    --4. On veut maintenant connaître le classement des équipes au MotoGP de 2016, en additionnant les points remportés par chaque pilote courant pour cette équipe. On va ainsi faire une somme des résultats de la requête n°2.
+
+    SELECT C.Team_nom, SUM(Nombre_total_de_point_pilote) AS Nombre_total_de_point
+    FROM Contrat AS C, (
+        SELECT Pi.id, SUM(Pa.points_gagnes) AS Nombre_total_de_point_pilote
+        FROM Pilote Pi, Participe Pa
+        WHERE Pa.id_pilote = Pi.id
+            AND Pa.championnat LIKE "MotoGP"
+            AND Pa.date_course LIKE "%2016"
+        GROUP BY Pi.id
+    ) AS score_pilote
+    WHERE score_pilote.id = C.id_pilote
+        AND YEAR(C.annee_debut) <= 2016
+        AND (
+            YEAR(C.annee_fin) >= 2016
+            OR C.annee_fin IS NULL
+        )
+    GROUP BY C.nom_team
+    ORDER BY Nombre_total_de_point DESC;
+    
+    --5. Et enfin, on veut connaître le classement des marques pour le MotoGP. Étant donné que chaque équipe est affiliée à une marque, cela signifie qu'on va faire une somme des résultats de la requête n°4.
+
+    SELECT T.marque, SUM(Nombre_total_de_point_team) AS Nombre_total_de_point
+    FROM Team T, (
+        SELECT C.Team_nom, SUM(Nombre_total_de_point_pilote) AS Nombre_total_de_point_team
+        FROM Contrat C, (
+            SELECT Pi.id, SUM(Pa.points_gagnes) AS Nombre_total_de_point_pilote
+            FROM Pilote Pi, Participe Pa
+            WHERE Pa.id_pilote = Pi.id
+                AND Pa.championnat LIKE "MotoGP"
+                AND Pa.date_course LIKE "%2016"
+            GROUP BY Pi.id
+        ) AS score_pilote
+        WHERE score_pilote.id = C.id_pilote
+            AND YEAR(C.annee_debut) <= 2016
+            AND (
+                YEAR(C.annee_fin) >= 2016
+                OR C.annee_fin IS NULL
+            )
+        GROUP BY C.nom_team
+    ) AS score_team
+    WHERE T.nom = score_team.nom_team
+    GROUP BY T.marque
+    ORDER BY Nombre_total_de_point DESC
+    
+    --6. Intéressés par les performances des pilotes espagnols, on désire connaître la moyenne de points obtenus par les pilotes espagnols pour chaque course du MotoGP.
+
+    SELECT Pi.prenom, Pi.nom, Pi.numero, AVG(Pa.points_gagnes) AS Moyenne
+    FROM Pilote Pi, Participe Pa
+    WHERE Pa.id_pilote = Pi.id
+        AND Pa.championnat LIKE "MotoGP"
+        AND Pi.pays LIKE "Espagne"
+    GROUP BY Pi.id
+    
+    --7. On voudrait savoir combien de pilotes de moins 30 ans sont actuellement sous contrat avec une moto de type "sportive".
+
+    SELECT COUNT(*)
+    FROM Pilote P, Contrat C, Modele_moto M
+    WHERE P.Id = C.Id_pilote
+        AND C.Moto_modele = M.Nom
+        AND C.Moto_annee = M.Annee
+        AND M.Genre = 'Sportive'
+        AND P.Age <= 30
+        AND YEAR(C.annee_fin) >= 2019;
+        
+    --8. Curieux de connaître les pilotes les moins performants, on veut obtenir la liste des pilotes n'ayant jamais participé à une course, ainsi que la liste des pilotes n'ayant jamais remporté une course.
+
+    SELECT Pi.prenom, Pi.nom, 0 AS Nombre_victoire
+    FROM Pilote Pi
+    WHERE Pi.id NOT IN (
+        SELECT Pa.id_pilote
+        FROM Participe Pa
+    )
+    UNION
+    SELECT Pi.prenom, Pi.nom, COUNT(*) AS Nombre_victoire
+    FROM Pilote Pi, Participe Pa
+    WHERE Pi.id = Pa.id_pilote
+        AND Pa.classement = 1
+    GROUP BY Pi.id
+    HAVING Nombre_victoire = 0;    
+    
+    --9. Une marque voudrait obtenir des contrats auprès de pilotes, et pour cela elle désire développer un modèle de moto qui s'inspire des modèles ayant été les plus populaires. Il va alors demander la liste classée des modèles de motos ayant été utilisés plus de six fois lors de courses (pas forcément la même).
+
+    SELECT Modele_moto, Anne_moto, count(Modele_moto,Anne_moto) as participations 
+    FROM Participe
+    WHERE participations >= 6
+    GROUP BY Modele_moto
+    ORDER BY Participations DESC;
+    
+    -- 10. Une nouvelle loi a décrétée par l'organisation des courses de moto: tous les contrats terminant cette année et ayant une durée inférieure à 3 ans seront prolongés jusqu'en 2021. On définit une requête qui répond à cette demande.
+    
+    UPDATE Contrat 
+    SET annee_fin = '2021-12-31'
+    WHERE YEAR(annee_fin) = 2019
+        AND YEAR(annee_fin) - YEAR(annee_debut) < 3
+        
+    -- 11. Suite au Brexit, les marques britanniques ont décidé d'augmenter de 10% le prix de tous leurs modèles de moto.
+
+    UPDATE Modele_moto
+    SET Prix = Prix * 1.1
+    WHERE Marque = (SELECT Nom FROM Marque as M 
+                    WHERE Marque = M.nom
+                    AND Nationalite = 'GB');
+
+    -- 12. On désire faire une étude de stratégie des marques vis à vis de la puissance de leur modèle. On demande une liste donnant le modèle le plus puissant de chaque marque ayant été utilisé au moins une fois, et on donne le meilleur temps moyen obtenu avec ce modèle.
+
+    SELECT MMA.Marque, MMA.Nom, MMA.Annee, MMA.Puissance, P.Vitesse_moy
+    FROM Modele_moto as MMA, Participe as P
+    WHERE Puissance = (SELECT MAX(Puissance) 
+                        FROM Modele_moto AS MMB WHERE MMB.Marque = MMA.Marque)
+        AND P.Vitesse_moy = (SELECT MAX(Vitesse_moy)
+                            FROM Participe AS PB WHERE PB.Modele_moto = P.Modele_moto
+                                                    AND PB.Anne_moto = P.Anne_moto)
+        AND MMA.Nom = P.Modele_moto
+        AND MMA.Annee = P.Anne_moto;
+    
+    -- 13. Suite à un scandale ayant éclaté après la révélation de pots au vin parmi les pilotes britanniques lors du championnat Superbike de 2015, l'organisation a décidé de supprimer de la base de données toutes les participations de ces pilotes lors de ce championnat.
+
+    DELETE FROM Participe
+    WHERE Id_pilote = (SELECT Id FROM Pilote 
+                        WHERE Nationalite = 'GB')
+    AND Championnat = 'Superbike'
+    AND YEAR(Date_course) = 2015;
+    
+    -- 14. Suite à une nouvelle législation espagnole, les motos de type Cafe Racer de plus de 200kg sont interdites sur les circuits espagnols. Le gouvernement a fait pression sur l'organisation pour qu'elle supprime également toutes les participations passées considérées comme maintenant interdites.
+    
+    DELETE FROM Participe
+    WHERE Modele_moto = (SELECT Nom FROM Modele_moto 
+                        WHERE Genre = 'Cafe Racer'
+                            AND Poids >= 200)
+    AND Date_course = (SELECT Date_course FROM Course_vitesse
+                        WHERE Circuit = (SELECT Nom FROM circuit
+                                            WHERE Pays = 'ES'));
+                                            
+    -- 15. A l'occasion du salon de la moto, les marques ont décidé de sur-renchérir un peu en augmentant de 1000€ le prix de tous leurs modèles ayant déjà remporté une première place lors d'une course.
+
+    UPDATE Modele_moto
+    SET Prix = Prix + 1000
+    WHERE Nom = SELECT(Modele_moto FROM Participe
+                        WHERE Classement = 1
+                            AND Participe.Modele_moto = Modele_moto.Nom)
+        AND Annee = SELECT(Anne_moto FROM Participe
+                        WHERE Classement = 1
+                            AND Participe.Anne_moto = Modele_moto.Annee);
+                            
+    -- 16. L'organisation des championnats a décrété que dû aux conditions de température difficiles en Australie, les comptes de points sont rééquilibrés en augmentant d'un point tous les scores obtenus lors de courses sur un circuit Australien.
+
+    UPDATE Participe
+    SET points_gagnes = points_gagnes + 1
+    WHERE date_course = (SELECT date_course as DCB FROM Course_vitesse as CV
+                            WHERE CV.Circuit = ( SELECT Nom from Circuit as C
+                                                    WHERE C.Pays = 'AU') 
+                            AND DCB = Participe.date_course)
+    AND Championnat = (SELECT Championnat as CHB FROM Course_vitesse as CV
+                            WHERE CV.Circuit = ( SELECT Nom from Circuit as C
+                                                    WHERE C.Pays = 'AU') 
+                            AND CHB = Participe.Championnat);
+    
+    -- 17. On désire savoir quels sont les modèles de motos ayant été le plus souvent la cible d'un contrat. On dresse le compte du nombre de contrats effectués pour chaque modèle de moto.
+
+    SELECT Moto_modele, Moto_annee, count(Moto_modele,Moto_annee) AS nb_of_contracts
+    FROM Contrat
+    GROUP BY Moto_modele,Moto_annee;
+    
+    -- 18. On voudrait voir quel pilote est le plus efficace sur quel circuits. On dresse le classements du plus grand nombre de victoire par pilote pour chaque circuit.
+
+    SELECT C.Nom , P.Nom, P.Prenom, COUNT(PA.Id_pilote) as nb_win
+    FROM Circuit as C, Pilote as P, Participe as PA
+    WHERE PA.Id_pilote = P.Id
+        AND PA.Date_course = (SELECT CV.Date_course FROM Course_vitesse as CV
+                                WHERE CV.Circuit = C.Nom)
+        AND PA.Classement = 1;
+    ORDER BY nb_win DESC;
+    
+    --19. Pour la nouvelle saison, on met à jour l'âge de tous les pilotes toujours actifs (encore sous contrats) en l'augmentant de 1 an.
+
+    UPDATE Pilote
+    SET Age = Age + 1
+    WHERE Id = (SELECT Id_pilote FROM contrat
+                WHERE YEAR(annee_fin) >= 2019);
+                
+    -- 20. Une équipe désire connaître la liste des pilotes les plus actifs récemment en vue de leur proposer des futurs contrats. On fait une requête donnant la liste des pilotes encore sous contrat, avec la date de leur dernière course, et la date d'expiration de leur contrat actuel.
+
+    SELECT P.Nom,P.prenom,PA.Date_course, YEAR(C.annee_fin)
+    FROM Pilote as P, Participe as PA, Contrat as C
+    WHERE P.Id = PA.id_pilote
+        AND P.Id = C.id_pilote
+        AND YEAR(C.annee_fin) >= 2019
+        AND PA.Date_course = MAX(Date_course);
+    
+    \end{minted}
+    \caption{Code SQL permettant d'exécuter les requêtes sur la base de données}
+    \label{lst.request}
+\end{code}
 
 \subsection{Vues}
 \label{sub.views}
 
 Notre base de données contient quelques vues permettant de visualiser des scores
-et des statistiques calculés à partir de notre jeu de données. De tels vues se
-destinerait à être inclus dans un site ou service web permettant de consulter
+et des statistiques calculées à partir de notre jeu de données. De tels vues se
+destineraient à être incluses dans un site ou service web permettant de consulter
 des statistiques sur les championnats de moto, avec des paramètres dynamiques
 tel que, par exemple, l'année des scores pour ledit championnat.
 
@@ -533,7 +783,7 @@ SQL.
 \label{sub.trig}
 
 Les triggers sont utilisés, dans notre projet, afin d'implémenter des
-contraintes d'intégrités. Pour la plupart des triggers, ces contraintes ne
+contraintes d'intégrité. Pour la plupart des triggers, ces contraintes ne
 peuvent être exprimées avec des clauses CHECK du fait qu’il faut  récupérer les
 valeurs de certains tuples d’une autre table et qu’il est nécessaire d’avoir un
 contrôle de flux en fonction des résultats. Pour un des triggers ci-dessous,
@@ -555,7 +805,7 @@ dans le sujet.
     /
 
     -- 2. Vérifie qu'une nationalité est correct. On pourrait utiliser un CHECK, mais
-    -- il faudrait coper-coller les valeurs de nationalités à la main, alors que
+    -- il faudrait copier-coller les valeurs de nationalités à la main, alors que
     -- l'on peux les regrouper dans une procédure.
     CREATE OR REPLACE PROCEDURE check_nationalite (nat IN CHAR) IS
     BEGIN
@@ -686,8 +936,8 @@ dans le sujet.
 
 Les méta-données d'une base de données sont des données stockées à l’intérieur
 même de la base décrivant la base de données elle-même, elles ne font donc pas
-partie du jeu de données initial. Oracle DBA stock ces méta-données dans des
-tables pré-définies spécialement prévues à cet effet. Nous avons donc écris une
+partie du jeu de données initial. Oracle DBA stocke ces méta-données dans des
+tables pré-définies spécialement prévues à cet effet. Nous avons donc écrit une
 démonstration de la récupération de ces méta-données afin de pouvoir les
 visualiser et avoir des informations sur les contraintes actuellement en vigueur
 dans notre base. Cependant, vous pourrez constater dans les commentaires du code
@@ -749,8 +999,8 @@ expérience jusqu’au bout.
 \end{code}
 
 Nous pouvons observer, sur la première requête qui à bien fonctionné, que les
-contraintes d’intégrités entre clés primaires et clés étrangères sont bien
-listées : pour le vérifier, il suffit de mettre en corrélation ce résultat avec
+contraintes d’intégrité entre clés primaires et clés étrangères sont bien
+listées : pour le vérifier, il suffit de mettre en corrélation ce résultat avec
 le script de création de la base, vu dans la Sous-Section~\ref{sub.scheme}. Nous
 avons donc la première colonne avec la table esclave, c’est-à-dire celle qui
 possède la clé étrangère, la table maître dans la deuxième colonne, c’est-à-dire
@@ -763,11 +1013,11 @@ l’identifiant de la contrainte qui est affiché.
 Dans cette dernière section, nous avons utilisé l'outil Oracle Explain Plan afin
 de pouvoir analyser l’exécution de nos requêtes SQL. Cette analyse permet de
 modifier nos requêtes afin qu’elles soient interprétées d’une manière différente
-par l’optimiseur de requête (Cost Based Optimizer (CBO)) lors de la détection
-d’un soucis de performance. L’outil s’utilise à travers une clause SQL puis par
+par l’optimiseur de requêtes (Cost Based Optimizer (CBO)) lors de la détection
+d’un souci de performance. L’outil s’utilise à travers une clause SQL puis par
 interrogation d’une table prévue pour contenir les résultats d’Explain Plan.
-Ci-dessous sont listés nos requêtes permettant d’interroger l’outil et récupérer
-le résultat :
+Ci-dessous sont listées nos requêtes permettant d’interroger l’outil et récupérer
+le résultat :
 
 \begin{code}
     \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
@@ -909,9 +1159,9 @@ Note
 \end{code}
 
 Nous pouvons ainsi, pour chaque requête, observer toutes les actions effectuées
-par le SGBD. Pour chacune de ses actions nous sont affichés des informations tel
+par le SGBD. Pour chacune de ces actions nous sont affichées des informations telles
 que le nombre de colonnes traitées, la taille des données, le temps et la
-demande en puissance de traitement estimé pour effectuer l’action. Nous obtenons
+demande en puissance de traitement estimée pour effectuer l’action. Nous obtenons
 aussi des informations sur l’ordre d’exécution des différentes opérations
 constituant notre requête. Par exemple, pour effectuer une jointure entre Pilote
 et Participe, on observe que notre base demande d’abord un accès complet à ces
@@ -938,3 +1188,19 @@ nécessitant un programme dynamique. Pour conclure, ce projet aura été une bon
 approche et une introduction intéressante à l’administration de base de données.
 
 \end{document}
+
+    © 2019 GitHub, Inc.
+    Terms
+    Privacy
+    Security
+    Status
+    Help
+
+    Contact GitHub
+    Pricing
+    API
+    Training
+    Blog
+    About
+
+Press h to open a hovercard with more details.
