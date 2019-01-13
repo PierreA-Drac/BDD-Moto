@@ -1,0 +1,225 @@
+% Preamble
+% =============================================================================
+
+% Class of the document.
+\documentclass[12pt,a4paper]{article}
+% article : short article.
+% report  : mid-length report.
+% book    : book or thesis redaction.
+
+% Paragraph skip length (default to 0).
+\setlength{\parskip}{1ex}
+
+% Packages
+% =============================================================================
+
+% Encoding
+% -----------------------------------------------------------------------------
+
+% Babel.
+\usepackage[french]{babel}
+% FontEnc.
+\usepackage[T1]{fontenc}
+% InputEnc.
+\usepackage[utf8]{inputenc}
+
+% Text
+% -----------------------------------------------------------------------------
+
+% Acronym.
+\usepackage{acronym}
+% CsQuote.
+\usepackage[style=french,french=guillemets]{csquotes}
+% Enumerate.
+\usepackage{enumerate}
+% HyperRef.
+\usepackage[hyperfootnotes=false,hidelinks]{hyperref}
+% URL.
+\usepackage{url}
+
+% Algorithms
+% -----------------------------------------------------------------------------
+
+% Algorithm2E.
+\usepackage[french,onelanguage,linesnumbered,ruled,vlined,commentsnumbered]{algorithm2e}
+
+% Source code
+% -----------------------------------------------------------------------------
+
+% Listings.
+\usepackage{listings}
+% Minted.
+\usepackage{minted}
+
+% Figures
+% -----------------------------------------------------------------------------
+
+% GraphicX.
+\usepackage{graphicx}
+% SVG.
+\usepackage{svg}
+% WrapFig.
+\usepackage{wrapfig}
+
+% Charts
+% -----------------------------------------------------------------------------
+
+% PGFPLots
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usepgfplotslibrary{units}
+
+% Mathematics
+% -----------------------------------------------------------------------------
+
+% AmsFonts.
+\usepackage{amsfonts}
+% AmsMath.
+\usepackage{amsmath}
+% AmsText.
+\usepackage{amstext}
+% AmsThm.
+\usepackage{amsthm}
+\newtheorem{prr}{Propriété}
+\newtheorem{pro}{Proposition}
+\newtheorem{thm}{Théorème}
+\newtheorem{lem}{Lemme}
+% NumPrint.
+\usepackage{numprint}
+
+% Physics
+% -----------------------------------------------------------------------------
+
+% Physics.
+\usepackage{physics}
+
+% Presentation
+% -----------------------------------------------------------------------------
+
+% XColor.
+\usepackage{xcolor}
+
+% References
+% -----------------------------------------------------------------------------
+
+% CleveRef.
+\usepackage{cleveref}
+
+% Structure.
+% -----------------------------------------------------------------------------
+
+% Geometry.
+\usepackage{geometry}
+% PDFLScape.
+\usepackage{pdflscape}
+% MultiCol.
+\usepackage{multicol}
+% TitleSec.
+\usepackage{titlesec}
+\newcommand{\sectionbreak}{\clearpage} % Use a page break before new sections.
+% VMargin.
+\usepackage{vmargin}
+% FootMisc.
+\usepackage[bottom]{footmisc}
+
+% Symbols
+% -----------------------------------------------------------------------------
+
+% SIUnitX.
+\usepackage{siunitx}
+
+% Table
+% -----------------------------------------------------------------------------
+
+% Array.
+\usepackage{array}
+% BookTabs.
+\usepackage{booktabs}
+% CSVSimple.
+\usepackage{csvsimple}
+
+% Document
+% =============================================================================
+
+\begin{document}
+
+\title{Base de données avec Oracle DBA sur les championnats de moto}
+\author{Pierre AYOUB et Maël ROUXEL}
+
+\maketitle
+
+\begin{figure}[b]
+    \centering
+    \includegraphics[scale=0.3]{figures/isty.jpg}
+\end{figure}
+
+\newpage
+\begin{abstract}
+    
+Oracle Database est un système de gestion de bases de données relationnelles
+(SGBD) utilisé dans le monde entier. Très répandu en entreprise, tant pour
+ses performances que sa fiabilité, nous utilisons ce SGBD afin de créer une
+base de données et d’y effectuer des tâches d’administration. Plusieurs
+possibilités offertes par Oracle DBA seront explorées dans ce projet.
+    
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+\label{sec.intro}
+
+Notre projet modélise une base de données concernant les championnats de moto.
+L’objectif de cette base est de stocker des informations non pas sur une seule
+saison de course, mais sur plusieurs saisons. De plus, on pourra stocker au sein
+d’une même base plusieurs championnats différents. Beaucoup d'informations
+techniques sont retenues concernant les motos et les résultats des pilotes sur
+chaques courses, ce qui permettra d’obtenir des statistiques poussées et
+diversifiées. La base de données possède quelques contraintes, listées
+ci-dessous (pour les moins évidentes) :
+
+\begin{itemize}
+    \item Une saison d'un championnat dure une année.
+
+    \item Par saison, un pilote peut participer à plusieurs championnats.
+
+    \item Pour un championnat donné, un pilote ne peut faire partit que d'une
+        team. Dans le cas où le pilote participe à plus d'un championnat sur une
+        saison, alors il peut faire partit de plusieurs teams différentes
+        concourantes sur différents championnats.
+
+    \item Pour un championnat donné et une team donné, un pilote ne peut
+        utiliser qu'une moto. Dans le cas où le pilote participe à plus d'un
+        championnat différents sur une saison, alors il peut utiliser plusieurs
+        motos différentes sur les différents championnats.
+
+    \item Chaque pilote doit être sous contrat pour pouvoir courir dans un
+        championnat. Un contrat est  un CDD liant un pilote, un modèle de moto
+        et une team pendant un temps donné (généralement, quelques années).
+
+    \item La participation d’un pilote à un course correspond à une relation
+        entre ladite course et le contrat d’un pilote.
+\end{itemize}
+
+\begin{listing}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{SQL}
+    TODO
+    \end{minted}
+    \caption{Code SQL}
+    \label{lst.sql}
+\end{listing}
+
+\section{Conclusion}
+\label{sec.conc}
+
+Ce projet nous aura beaucoup appris concernant Oracle DBA et PL/SQL. Concernant
+Oracle DBA, nous aurons constaté qu’il existe un large écosystème d’outil de
+développement autour de ce SGBD, des outils de débogage jusqu’à l’analyse de
+performance en passant par des utilitaires facilitant la manipulation des
+données. Par rapport à PL/SQL, nous avons pu expérimenter différentes
+utilisations du langage, par exemple pour gérer des contraintes avancées ou
+encore permettre d’automatiser certaines opérations de gestion des données
+nécessitant un programme dynamique. Pour conclure, ce projet aura été une bonne
+approche et une introduction intéressante à l’administration de base de données.
+
+\end{document}
