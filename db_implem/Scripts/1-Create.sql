@@ -158,7 +158,7 @@ ALTER TABLE Contrat
 ALTER TABLE Contrat
     ADD FOREIGN KEY (Team_nom) REFERENCES Team (Nom);
 
--- Creéation des vues.
+-- Création des vues.
 
 -- 1. Liste des scores des pilotes au MotoGP de 2016.
 CREATE VIEW MotoGP_2016_Score_pilotes AS

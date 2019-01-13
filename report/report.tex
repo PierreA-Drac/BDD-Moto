@@ -50,6 +50,9 @@
 \usepackage{listings}
 % Minted.
 \usepackage{minted}
+% Caption.
+\usepackage{caption}
+\newenvironment{code}{\captionsetup{type=listing}}{}
 
 % Figures
 % -----------------------------------------------------------------------------
@@ -201,13 +204,306 @@ ci-dessous (pour les moins évidentes) :
         entre ladite course et le contrat d’un pilote.
 \end{itemize}
 
-\begin{listing}
-    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm]{SQL}
-    TODO
+\section{Mise en place de la base de données}
+\label{sec.reference}
+
+Dans cette section, nous vous présenterons la mise en place de la base de
+données. Pour la majorité du travail ci-dessous, cela concerne le langage de
+requête SQL ou l’utilisation de l’utilitaire de chargement de données Oracle SQL
+Loader.
+
+\subsection{Schéma de la base de données}
+\label{sub.scheme}
+
+La création du schéma de la base de données consiste à créer les tables en
+spécifiant les attributs, leurs types, et leurs contraintes d'intégrités
+basiques tel que les clés primaires et étrangères, ainsi que les contraintes
+check.
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    -- Création des tables.
+
+    -- 1. Marques de moto.
+    CREATE TABLE Marque
+    (
+        Nom         VARCHAR(32) NOT NULL,
+        Annee       DATE,       -- CHECK with a trigger.
+        Nationalite CHAR(2),    -- CHECK with a trigger.
+        PRIMARY KEY (Nom)
+    );
+
+    -- 2. Teams concourrant aux championnats.
+    CREATE TABLE Team
+    (
+        Nom    VARCHAR(32) NOT NULL,
+        Marque VARCHAR(32) NOT NULL,
+        PRIMARY KEY (nom)
+    );
+
+    -- 3. Modèles de moto.
+    CREATE TABLE Modele_moto
+    (
+        Marque      VARCHAR(32) NOT NULL,
+        Nom         VARCHAR(32) NOT NULL,
+        Annee       DATE        NOT NULL, -- CHECK with a trigger.
+        Cylindree   FLOAT       CHECK (Cylindree > 20 AND Cylindree < 2000),
+        Couple      FLOAT       CHECK (Couple > 1     AND Couple < 20),
+        Puissance   FLOAT       CHECK (Puissance > 1  AND Puissance < 500),
+        Poids       FLOAT       CHECK (Poids > 30     AND Poids < 500),
+        Prix        NUMBER(6)   CHECK (Prix > 100 AND Prix < 500000),
+        Genre       VARCHAR(40) NOT NULL CHECK (Genre IN ('Sportive', 'Cafe Racer')),
+        PRIMARY KEY (nom, annee)
+    );
+
+    -- 4. Pilotes appartenant aux teams.
+    CREATE TABLE Pilote
+    (
+        Id          NUMBER(4)   NOT NULL, -- CHECK with a trigger.
+        Nom         VARCHAR(32) NOT NULL,
+        Prenom      VARCHAR(32) NOT NULL,
+        Age         NUMBER(3)   CHECK (Age BETWEEN 10 and 100),
+        Nationalite CHAR(2),    -- CHECK with a trigger.
+        Sexe        CHAR(1)     CHECK (Sexe IN (NULL, 'H', 'F')),
+        Numero      NUMBER(2)   CHECK (Numero BETWEEN 0 and 99),
+        PRIMARY KEY (id)
+    );
+
+    -- 5. Championnats existants.
+    CREATE TABLE Championnat
+    (
+        Nom         VARCHAR(32) NOT NULL,
+        Annee       DATE        NOT NULL,   -- CHECK with a trigger.
+        PRIMARY KEY (Nom, Annee)
+    );
+
+    -- 6. Circuits sur lesquels les courses se déroulent.
+    CREATE TABLE Circuit
+    (
+        Nom      VARCHAR(32) NOT NULL,
+        Pays     CHAR(2)     NOT NULL,  -- CHECK with a trigger.
+        Longueur FLOAT       CHECK (Longueur BETWEEN 0.5 AND 20),
+        PRIMARY KEY (Nom)
+    );
+
+    -- 7. Courses appartenants aux championnats.
+    CREATE TABLE Course_vitesse
+    (
+        Championnat VARCHAR(32) NOT NULL,
+        Annee       DATE        NOT NULL,
+        Date_course DATE        NOT NULL, -- CHECK with trigger.
+        Circuit     VARCHAR(32) NOT NULL,
+        Nb_tours    NUMBER(2)   CHECK (Nb_tours BETWEEN 1 AND 30),
+        Duree       FLOAT       CHECK (Duree BETWEEN 1 AND 100),
+        PRIMARY KEY (Championnat, Date_course)
+    );
+
+    -- 8. Participation d'un pilote à une course.
+    CREATE TABLE Participe (
+        Id_pilote       INT         NOT NULL,
+        Championnat     VARCHAR(32) NOT NULL,
+        Date_course     DATE        NOT NULL,
+        Modele_moto     VARCHAR(32) NOT NULL,
+        Annee_moto      DATE        NOT NULL,
+        Classement      NUMBER(2)   CHECK (Classement BETWEEN 0 AND 30),
+        Points_gagnes   NUMBER(2)   CHECK (Points_gagnes BETWEEN 0 AND 25),
+        Vitesse_moy     FLOAT       CHECK (Vitesse_moy BETWEEN 0 AND 300),
+        Meilleur_tour   FLOAT       CHECK (Meilleur_tour BETWEEN 0 AND 400),
+        PRIMARY KEY (Id_pilote, Championnat, Date_course, Modele_moto, Annee_moto)
+    );
+
+    -- 9. Contrats liants un pilote, une équipe et un modèle de moto.
+    CREATE TABLE Contrat (
+        Id_pilote   NUMBER(4)   NOT NULL,
+        Moto_modele VARCHAR(32) NOT NULL,
+        Moto_annee  DATE        NOT NULL,
+        Team_nom    VARCHAR(32) NOT NULL,
+        Annee_debut DATE        NOT NULL,
+        Annee_fin   DATE        NOT NULL,
+        PRIMARY KEY (Id_pilote, Moto_modele, Moto_annee, Team_nom, Annee_debut)
+    );
+
+    -- Configure les clés étrangères.
+
+    ALTER TABLE Team
+        ADD FOREIGN KEY (Marque) REFERENCES Marque (Nom);
+
+    ALTER TABLE Modele_moto
+        ADD FOREIGN KEY (Marque) REFERENCES Marque (Nom);
+        
+    -- Désactivé car on utilise un trigger pour ces clés, conformément à la consigne.
+    --  ALTER TABLE Course_vitesse
+        --  ADD FOREIGN KEY (Championnat, Annee) REFERENCES Championnat (Nom, Annee);
+    ALTER TABLE Course_vitesse
+        ADD FOREIGN KEY (Circuit) REFERENCES Circuit (Nom);
+
+    ALTER TABLE Participe
+        ADD FOREIGN KEY (Id_pilote) REFERENCES Pilote (Id);
+    ALTER TABLE Participe
+        ADD FOREIGN KEY (Championnat, Date_course) REFERENCES Course_vitesse (Championnat, Date_course);
+    ALTER TABLE Participe
+        ADD FOREIGN KEY (Modele_moto, Annee_moto) REFERENCES Modele_moto (Nom, Annee);
+
+    ALTER TABLE Contrat
+        ADD FOREIGN KEY (Id_pilote) REFERENCES Pilote (Id);
+    ALTER TABLE Contrat
+        ADD FOREIGN KEY (Moto_modele, Moto_annee) REFERENCES Modele_moto (Nom, Annee);
+    ALTER TABLE Contrat
+        ADD FOREIGN KEY (Team_nom) REFERENCES Team (Nom);
     \end{minted}
-    \caption{Code SQL}
-    \label{lst.sql}
-\end{listing}
+    \caption{Code SQL permettant de mettre en place la base de données}
+    \label{lst.create}
+\end{code}
+
+\subsection{Jeu de données}
+\label{sub.data}
+
+Pour le chargement du jeu de données, nous avons utilisé l'utilitaire spécialisé
+Oracle SQL Loader. Du fait que cela ne serait pas pertinent d’inclure
+l’intégralité du jeu de données dans le rapport, nous allons uniquement vous
+présenter un exemple d’un fichier de données CSV et d’un fichier de contrôle
+CTL. Le fichier CSV contient les valeurs des données allant s’intégrer dans les
+tables crées précédemment, tandis que le fichier CTL contient des informations
+sur la manière dont les données doivent être chargées depuis le fichier CSV. Par
+exemple, des précisions sur le type de données, tel que le format de la date.
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    LOAD DATA
+    INFILE './Data/Participe.csv'
+    TRUNCATE
+    INTO TABLE Participe
+    FIELDS TERMINATED BY ';'
+    TRAILING NULLCOLS
+    (
+        Id_pilote,
+        Championnat,
+        Date_course DATE "YYYY-MM-DD",
+        Modele_moto,
+        Annee_moto DATE "YYYY",
+        Classement,
+        Points_gagnes,
+        Vitesse_moy,
+        Meilleur_tour
+    )
+    \end{minted}
+    \caption{Code SQL Loader permettant de charger des données dans une table}
+    \label{lst.loadctl}
+\end{code}
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    Id_pilote;Championnat;Date_course;Modele_moto;Annee_moto; Classement;Points_gagnes;Vitesse_moy;Meilleur_tour
+    1;MotoGP;2016-03-20;M1;2016;1;25;167.1;114.543
+    0;MotoGP;2016-03-20;Desmosedici GP;2013;2;20;167.0;;
+    7;MotoGP;2016-03-20;RC213V;2012;3;16;167.0;;
+    4;MotoGP;2016-03-20;M1;2016;4;13;167.0;;
+    8;MotoGP;2016-03-20;RC213V;2012;5;11;166.2;;
+    5;MotoGP;2016-03-20;GSX-RR;2014;6;10;166.1;;
+    11;MotoGP;2016-03-20;RC213V-RS;2015;14;2;164.4;;
+    6;MotoGP;2016-03-20;RC213V;2012;0;0;165.0;;
+    10;MotoGP;2016-03-20;GSX-RR;2014;18;0;;;
+    4;MotoGP;2016-04-24;M1;2016;1;25;157.5;100.090
+    [...]
+    13;Superbike;2015-02-22;GSX-R1000;2014;9;7;;;92.690
+    14;Superbike;2015-02-22;ZX-10R;2015;6;10;;;92.016
+    \end{minted}
+    \caption{Fichier CSV contenant des données à charger (extrait)}
+    \label{lst.loadcsv}
+\end{code}
+
+\subsection{Manipulation des données par requêtes SQL}
+\label{sub.req}
+
+TODO Maël
+
+\subsection{Vues}
+\label{sub.views}
+
+Notre base de données contient quelques vues permettant de visualiser des scores
+et des statistiques calculés à partir de notre jeu de données. De tels vues se
+destinerait à être inclus dans un site ou service web permettant de consulter
+des statistiques sur les championnats de moto, avec des paramètres dynamiques
+tel que, par exemple, l'année des scores pour ledit championnat.
+
+\begin{code}
+    \begin{minted}[linenos,numbersep=5pt,frame=lines,framesep=2mm,breaklines=true]{SQL}
+    -- Création des vues.
+
+    -- 1. Liste des scores des pilotes au MotoGP de 2016.
+    CREATE VIEW MotoGP_2016_Score_pilotes AS
+        SELECT Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom, SUM(Pa.Points_gagnes) AS Nombre_total_de_point
+        FROM Participe Pa, Pilote Pi
+        WHERE Pa.Id_pilote = Pi.Id
+            AND Pa.Championnat LIKE 'MotoGP'
+            AND TO_CHAR(Pa.Date_course, 'YYYY') LIKE '2016'
+        GROUP BY Pi.Id, Pi.Numero, Pi.Nom, Pi.Prenom
+        ORDER BY Nombre_total_de_point DESC
+        WITH READ ONLY;
+    GRANT SELECT ON MotoGP_2016_Score_pilotes to PUBLIC;
+        
+    -- 2. Liste des scores des teams au MotoGP de 2016.
+    CREATE VIEW MotoGP_2016_Score_teams AS
+        SELECT C.Team_nom, SUM(Nombre_total_de_point) AS Nombre_total_de_point
+        FROM Contrat C, MotoGP_2016_Score_pilotes S
+        WHERE S.Id = C.Id_pilote
+            AND TO_DATE(2016, 'YYYY') BETWEEN C.Annee_debut AND C.Annee_fin
+        GROUP BY C.Team_nom
+        ORDER BY Nombre_total_de_point DESC
+        WITH READ ONLY;
+    GRANT SELECT ON MotoGP_2016_Score_teams to PUBLIC;
+
+    -- 3. Liste des scores des constructeurs au MotoGP de 2016.
+    CREATE VIEW MotoGP_2016_Score_construc AS
+        SELECT T.Marque, SUM(Nombre_total_de_point) AS Nombre_total_de_point
+        FROM Team T, MotoGP_2016_Score_teams S
+        WHERE T.Nom = S.Team_nom
+        GROUP BY T.Marque
+        ORDER BY Nombre_total_de_point DESC
+        WITH READ ONLY;
+    GRANT SELECT ON MotoGP_2016_Score_construc to PUBLIC;
+
+    -- 4. Statistiques diverses sur les pilotes du MotoGP.
+    CREATE VIEW MotoGP_Pilote_stat AS
+        SELECT Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe,
+            SUM(Pa.Points_gagnes) AS Total_de_points_gagnes,
+            MIN(Pa.Classement)    AS Meilleur_classement,
+            MAX(Pa.Vitesse_moy)   AS Vitesse_moyenne,
+            MIN(Pa.Meilleur_tour) AS Meilleur_tour
+        FROM Pilote Pi, Participe Pa
+        WHERE Pa.Id_pilote = Pi.Id
+            AND Pa.Championnat LIKE 'MotoGP'
+        GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom, Pi.Age, Pi.Nationalite, Pi.Sexe
+        WITH READ ONLY;
+    GRANT SELECT ON MotoGP_Pilote_stat to PUBLIC;
+
+    -- 5. Nombre de victoire des pilotes au MotoGP.
+    CREATE VIEW MotoGP_Pilote_win AS
+        SELECT Pi.Numero, Pi.Nom, Pi.Prenom, COUNT(*) AS Nombre_de_victoire
+        FROM Pilote Pi, Participe Pa
+        WHERE Pa.Id_pilote = Pi.Id
+            AND Pa.Championnat LIKE 'MotoGP'
+            AND Pa.Classement = 1
+        GROUP BY Pi.Numero, Pi.Nom, Pi.Prenom
+        ORDER BY Nombre_de_victoire DESC
+        WITH READ ONLY;
+    GRANT SELECT ON MotoGP_Pilote_win to PUBLIC;
+    \end{minted}
+    \caption{Code SQL permettant de créer les vues de la base de données}
+    \label{lst.create}
+\end{code}
+
+\section{SQL Avancé}
+\label{sec.reference}
+
+\subsection{Triggers}
+\label{sub.trig}
+
+\subsection{Méta-données}
+\label{sub.metadata}
+
+\subsection{Analyse des requêtes}
+\label{sub.analyze}
 
 \section{Conclusion}
 \label{sec.conc}
