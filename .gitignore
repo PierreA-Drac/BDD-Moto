@@ -1,2 +1,6 @@
-2. Implémentation SQL/Logs/*
-2. Implémentation SQL/afiedt.buf
+report/_minted-report
+report/report.aux
+report/report.log
+report/report.out
+report/report.toc
+db_implem/Logs/*
