@@ -1,38 +1,38 @@
 
 --1. Liste des championnats différents par année :
-SELECT Cv.championnat, EXTRACT(YEAR FROM Cv.date_course) AS Annee
+SELECT Cv.championnat, SUBSTRING_INDEX(Cv.date_course, "/", -1) AS Annee
 FROM Course_vitesse Cv
-GROUP BY Cv.championnat, EXTRACT(YEAR FROM Cv.date_course);
+GROUP BY Cv.championnat, Annee
 
 --2. Score des pilotes au MotoGP de 2016 :
 
 SELECT Pi.prenom, Pi.nom, Pi.numero, SUM(Pa.points_gagnes) AS Nombre_total_de_point
 FROM Pilote Pi, Participe Pa
 WHERE Pa.id_pilote = Pi.id
-    AND Pa.championnat LIKE 'MotoGP'
-    AND EXTRACT(YEAR FROM Pa.date_course) LIKE 2016
-GROUP BY Pi.prenom, Pi.nom, Pi.numero
-ORDER BY SUM(Pa.points_gagnes) DESC;
+    AND Pa.championnat LIKE "MotoGP"
+    AND YEAR(Pa.date_course) LIKE "%2016"
+GROUP BY Pi.id
+ORDER BY Nombre_total_de_point DESC;
 
 --4. Score des teams au MotoGP de 2016 :
 
 SELECT C.Team_nom, SUM(Nombre_total_de_point_pilote) AS Nombre_total_de_point
-FROM Contrat C, (
+FROM Contrat AS C, (
     SELECT Pi.id, SUM(Pa.points_gagnes) AS Nombre_total_de_point_pilote
     FROM Pilote Pi, Participe Pa
     WHERE Pa.id_pilote = Pi.id
-        AND Pa.championnat LIKE 'MotoGP'
-        AND EXTRACT(YEAR FROM Pa.date_course) LIKE 2016
+        AND Pa.championnat LIKE "MotoGP"
+        AND Pa.date_course LIKE "%2016"
     GROUP BY Pi.id
-) score_pilote
+) AS score_pilote
 WHERE score_pilote.id = C.id_pilote
-    AND EXTRACT(YEAR FROM C.annee_debut) <= 2016
+    AND YEAR(C.annee_debut) <= 2016
     AND (
-        EXTRACT(YEAR FROM C.annee_fin) >= 2016
+        YEAR(C.annee_fin) >= 2016
         OR C.annee_fin IS NULL
     )
-GROUP BY C.team_nom
-ORDER BY SUM(Nombre_total_de_point_pilote) DESC;
+GROUP BY C.nom_team
+ORDER BY Nombre_total_de_point DESC;
 
 --5. Score des marques au MotoGP de 2016 :
 
@@ -43,41 +43,41 @@ FROM Team T, (
         SELECT Pi.id, SUM(Pa.points_gagnes) AS Nombre_total_de_point_pilote
         FROM Pilote Pi, Participe Pa
         WHERE Pa.id_pilote = Pi.id
-            AND Pa.championnat LIKE 'MotoGP'
-            AND EXTRACT(YEAR FROM Pa.date_course ) LIKE 2016
+            AND Pa.championnat LIKE "MotoGP"
+            AND Pa.date_course LIKE "%2016"
         GROUP BY Pi.id
-    ) score_pilote
+    ) AS score_pilote
     WHERE score_pilote.id = C.id_pilote
-        AND EXTRACT(YEAR FROM C.annee_debut) <= 2016
+        AND YEAR(C.annee_debut) <= 2016
         AND (
-            EXTRACT(YEAR FROM C.annee_fin) >= 2016
+            YEAR(C.annee_fin) >= 2016
             OR C.annee_fin IS NULL
         )
-    GROUP BY C.team_nom
-) score_team
-WHERE T.nom = score_team.team_nom
+    GROUP BY C.nom_team
+) AS score_team
+WHERE T.nom = score_team.nom_team
 GROUP BY T.marque
-ORDER BY Nombre_total_de_point DESC;
+ORDER BY Nombre_total_de_point DESC
 
 --6. Moyenne des points gagnés par course par des pilotes Espagnols au MotoGP :
 
 SELECT Pi.prenom, Pi.nom, Pi.numero, AVG(Pa.points_gagnes) AS Moyenne
 FROM Pilote Pi, Participe Pa
 WHERE Pa.id_pilote = Pi.id
-    AND Pa.championnat LIKE 'MotoGP'
-    AND Pi.nationalite LIKE 'ES'
-GROUP BY Pi.prenom, Pi.nom, Pi.numero;
+    AND Pa.championnat LIKE "MotoGP"
+    AND Pi.pays LIKE "Espagne"
+GROUP BY Pi.id
 
 --7. Nombre de pilotes de motos de moins de 30 ans utilisant une moto sportive dans leur contrat actuel :
 
-SELECT COUNT(*) as nb_pilotes_moins_30_ans_moto_sportive
+SELECT COUNT(*)
 FROM Pilote P, Contrat C, Modele_moto M
 WHERE P.Id = C.Id_pilote
     AND C.Moto_modele = M.Nom
     AND C.Moto_annee = M.Annee
     AND M.Genre = 'Sportive'
     AND P.Age <= 30
-    AND EXTRACT(YEAR FROM C.annee_fin) >= 2019;
+    AND YEAR(C.annee_fin) >= 2019;
 
 --8. Affiche les pilotes n'ayant jamais participé à une course ainsi que ceux
 -- n'ayant jamais eu de victoire
@@ -93,31 +93,31 @@ SELECT Pi.prenom, Pi.nom, COUNT(*) AS Nombre_victoire
 FROM Pilote Pi, Participe Pa
 WHERE Pi.id = Pa.id_pilote
     AND Pa.classement = 1
-GROUP BY Pi.prenom, Pi.nom
-HAVING COUNT(*) = 0;
+GROUP BY Pi.id
+HAVING Nombre_victoire = 0;
 
 
 --9. Liste des modèles de motos ayant été utilisées plus de six fois dans des courses
 
-SELECT Modele_moto, EXTRACT(YEAR FROM Annee_moto) as Annee, count(*) as Participations
+SELECT Modele_moto, Anne_moto, count(Modele_moto,Anne_moto) as participations 
 FROM Participe
-GROUP BY Modele_moto, Annee_moto
-HAVING count(*) >= 6
-ORDER BY count(*) DESC;
+WHERE participations >= 6
+GROUP BY Modele_moto
+ORDER BY Participations DESC;
 
 
 -- 10. Tous les contrats terminant en 2019 mais ayant une durée inférieure à 3 ans 
 -- (donc commençant après 2016) sont allongés jusqu'à 2021
 UPDATE Contrat 
-SET annee_fin = TO_DATE('2021-12-31', 'YYYY-MM-DD')
-WHERE EXTRACT(YEAR FROM annee_fin) = 2019
-    AND EXTRACT(YEAR FROM annee_fin) - EXTRACT(YEAR FROM annee_debut) < 3;
+SET annee_fin = '2021-12-31'
+WHERE YEAR(annee_fin) = 2019
+    AND YEAR(annee_fin) - YEAR(année_début) < 3
 
 -- 11. Augmentation de 10% des prix de tous les modèles de moto appartenant à des marques britanniques
 
 UPDATE Modele_moto
 SET Prix = Prix * 1.1
-WHERE Marque = (SELECT Nom FROM Marque M 
+WHERE Marque = (SELECT Nom FROM Marque as M 
                 WHERE Marque = M.nom
                 AND Nationalite = 'GB');
 
@@ -126,109 +126,100 @@ WHERE Marque = (SELECT Nom FROM Marque M
 -- été utilisé dans au moins un course, on donne ainsi également sa meilleure vitesse moyenne enregistrée en course.
 
 SELECT MMA.Marque, MMA.Nom, MMA.Annee, MMA.Puissance, P.Vitesse_moy
-FROM Modele_moto MMA, Participe P
+FROM Modele_moto as MMA, Participe as P
 WHERE Puissance = (SELECT MAX(Puissance) 
-                    FROM Modele_moto MMB 
-                    WHERE MMB.Marque = MMA.Marque)
+                    FROM Modele_moto AS MMB WHERE MMB.Marque = MMA.Marque)
     AND P.Vitesse_moy = (SELECT MAX(Vitesse_moy)
-                        FROM Participe PB 
-                        WHERE PB.Modele_moto = P.Modele_moto
-                        AND PB.Annee_moto = P.Annee_moto)
+                        FROM Participe AS PB WHERE PB.Modele_moto = P.Modele_moto
+                                                AND PB.Anne_moto = P.Anne_moto)
     AND MMA.Nom = P.Modele_moto
-    AND MMA.Annee = P.Annee_moto;
+    AND MMA.Annee = P.Anne_moto;
 
 
 -- 14. Supprime toutes les participations ayant été effectuées avec des motos de type
 -- "cafe racer" de plus de 200 kg sur des circuits Espagnols
 
-DELETE FROM Participe P
-WHERE P.Modele_moto = (SELECT MM.Nom FROM Modele_moto MM
+DELETE FROM Participe
+WHERE Modele_moto = (SELECT Nom FROM Modele_moto 
                     WHERE Genre = 'Cafe Racer'
-                        AND Poids >= 200
-                        AND MM.nom = P.Modele_moto
-                        AND MM.annee = P.annee_moto)
-AND Date_course = (SELECT Date_course FROM Course_vitesse CVT
-            WHERE CVT.Date_course = P.Date_course
-                        AND Circuit = (SELECT Nom FROM circuit
+                        AND Poids >= 200)
+AND Date_course = (SELECT Date_course FROM Course_vitesse
+                    WHERE Circuit = (SELECT Nom FROM circuit
                                         WHERE Pays = 'ES'));
+
 
 
 
 -- 13. Supprime toutes les participations effectuées par des pilotes brittaniques lors du championnat Superbike 2015
 
 DELETE FROM Participe
-WHERE Id_pilote = (SELECT Id FROM Pilote P
-                    WHERE Nationalite = 'GB'
-                    AND Id_pilote = P.Id)
+WHERE Id_pilote = (SELECT Id FROM Pilote 
+                    WHERE Nationalite = 'GB')
 AND Championnat = 'Superbike'
-AND EXTRACT(YEAR FROM Date_course) = 2015;
+AND YEAR(Date_course) = 2015;
 
 -- 15. Augmentation de 1000€ des prix des modèles de motos ayant remporté la première place à au moins une course
 
 UPDATE Modele_moto
 SET Prix = Prix + 1000
-WHERE (Nom,Annee) = (SELECT Modele_moto,Annee_moto FROM Participe
+WHERE Nom = SELECT(Modele_moto FROM Participe
                     WHERE Classement = 1
-                        AND Participe.Modele_moto = Modele_moto.Nom
-                        AND Participe.Annee_moto = Modele_moto.Annee
-                        GROUP BY Modele_moto,Annee_moto);
+                        AND Participe.Modele_moto = Modele_moto.Nom)
+    AND Annee = SELECT(Anne_moto FROM Participe
+                    WHERE Classement = 1
+                        AND Participe.Anne_moto = Modele_moto.Annee);
 
 -- 16. Augmentation de 1 point de tous les scores obtenus lors de courses effectuées
 -- dans un circuit Australien
 
-UPDATE Participe P
+UPDATE Participe
 SET points_gagnes = points_gagnes + 1
-WHERE date_course = (SELECT date_course as DCB FROM Course_vitesse CV
-                    WHERE CV.Date_course = P.date_course
-                        AND CV.Circuit = ( SELECT Nom from Circuit C
-                        WHERE C.Nom = CV.Circuit
-                                                AND C.Pays = 'AU'));
+WHERE date_course = (SELECT date_course as DCB FROM Course_vitesse as CV
+                        WHERE CV.Circuit = ( SELECT Nom from Circuit as C
+                                                WHERE C.Pays = 'AU') 
+                        AND DCB = Participe.date_course)
+AND Championnat = (SELECT Championnat as CHB FROM Course_vitesse as CV
+                        WHERE CV.Circuit = ( SELECT Nom from Circuit as C
+                                                WHERE C.Pays = 'AU') 
+                        AND CHB = Participe.Championnat);
+
 
 -- 17. Donne le nombre de contrats effectués pour chaque modèle de moto
 
-SELECT Moto_modele, EXTRACT(YEAR FROM Moto_annee) as Annee, count(*) AS Nb_of_contracts
+SELECT Moto_modele, Moto_annee, count(Moto_modele,Moto_annee) AS nb_of_contracts
 FROM Contrat
-GROUP BY Moto_modele,Moto_annee
-ORDER BY count(*) DESC;
+GROUP BY Moto_modele,Moto_annee;
 
 -- 18. Donne le classement du nombre de victoires par pilote pour chaque circuit
 
-SELECT C.Nom , P.Nom, P.Prenom, COUNT(*) as nb_win
-FROM Circuit C, Pilote P, Participe PA
+SELECT C.Nom , P.Nom, P.Prenom, COUNT(PA.Id_pilote) as nb_win
+FROM Circuit as C, Pilote as P, Participe as PA
 WHERE PA.Id_pilote = P.Id
-    AND PA.Date_course = (SELECT CV.Date_course FROM Course_vitesse CV
-                            WHERE CV.Circuit = C.Nom
-                            AND PA.Date_course = CV.date_course)
-                            AND PA.Classement = 1
-GROUP BY C.Nom , P.Nom, P.Prenom
-ORDER BY count(*);
+    AND PA.Date_course = (SELECT CV.Date_course FROM Course_vitesse as CV
+                            WHERE CV.Circuit = C.Nom)
+    AND PA.Classement = 1;
+ORDER BY nb_win DESC;
 
 
 --19. Mise à jour de l'âge de tous les pilotes actif (encore sous contrat) pour la nouvelle année
 
-UPDATE Pilote P
+UPDATE Pilote
 SET Age = Age + 1
-WHERE Id = (SELECT Id_pilote FROM contrat C
-        WHERE P.Id = C.Id_pilote
-             AND EXTRACT(YEAR FROM annee_fin) >= 2019);
+WHERE Id = (SELECT Id_pilote FROM contrat
+            WHERE YEAR(annee_fin) >= 2019);
 
 -- 3. Total de points gagnés par chaque pilotes au fil des championnats
 
 SELECT P.Nom, P.Prenom, SUM(PA.points_gagnes) as total_point
-FROM Pilote P,Participe PA
-WHERE P.Id = PA.Id_pilote
-GROUP BY P.Nom,P.Prenom
-ORDER BY SUM(PA.points_gagnes) DESC;
+FROM Piote as P,Participe as PA
+GROUP BY P.Nom,P.Prenom, total_point;
 
 -- 20. Donne la liste des pilotes actifs avec la date de leur dernière participation à une course
 -- Ainsi que la date d'expiration de leur contrat actuel
 
-SELECT P.Nom,P.prenom,PA.Date_course, EXTRACT(YEAR FROM C.annee_fin) as fin_contrat
-FROM Pilote P, Participe PA, Contrat C
+SELECT P.Nom,P.prenom,PA.Date_course, YEAR(C.annee_fin)
+FROM Pilote as P, Participe as PA, Contrat as C
 WHERE P.Id = PA.id_pilote
     AND P.Id = C.id_pilote
-    AND EXTRACT(YEAR FROM C.annee_fin) >= 2019
-    AND PA.Date_course = (SELECT MAX(Date_course) FROM Participe PAB
-                WHERE PA.Date_course = PAB.Date_course
-                AND PA.id_pilote = PAB.id_pilote)
-GROUP BY P.Nom,P.prenom,PA.Date_course,EXTRACT(YEAR FROM C.annee_fin);
+    AND YEAR(C.annee_fin) >= 2019
+    AND PA.Date_course = MAX(Date_course);
